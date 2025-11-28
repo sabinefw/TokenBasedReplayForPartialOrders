@@ -7,7 +7,7 @@ To reproduce the experimental results in the paper, or to conduct own experiment
 
 2.) Set the experiment configuration (if required): <br>
     a.) In line 18, set the number of iterations (number_tests_per_pair). If you are just interested in the fitness values, one iteration is sufficent. If you are interested in runtime experiments, more iterations may be useful. The experiments in the article were conducted with 100 iterations.
-    (If you would like to use the algorithms as classic token-based replay algorithms to conduct experiments on totally ordered event logs, set the "is_experiment_with_po flag to False.)   
+    (If you would like to use the algorithms as classic token-based replay algorithms to conduct experiments on totally ordered event logs, set the "is_experiment_with_po" flag to False.)   
 
 3.) Run the experiments.
 
