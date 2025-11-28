@@ -3,11 +3,11 @@ Algorithm for caluclating an exact fitness value using token-based replay on par
 
 To reproduce the experimental results in the paper, or to conduct own experiments, please use the script "ExperimentPartialOrderConFormanceAnalysis.py" in the folder source/experiments.
 
-1.) Make sure that the folders data/nets, data/partially_ordered_logs, data/totally_ordered_logs, results/po/general, results/po/run-details and results/po/place-details exist in the source/experiments folder, and fill them with the data you want to conduct experiments on, e.g. the data provided in the zip-files provided in this Github repository to reproduce the experiments of the paper. Note that the totally ordered reference event logs are not provided on this Github as they are quite large in size and publicly available. If you use own data, please edit the file names of the actually used totally ordered event log files in the "ExperimentPartialOrderConFormanceAnalysis.py" test script (lines 17-31) accordingly.
+1.) Create the folders (or verify that they exist) data/nets, data/partially_ordered_logs, results/po/general, results/po/run-details and results/po/place-details in the source/experiments folder. Fill them with the data you want to conduct experiments on, e.g. the data provided in the zip-files in this Github repository to reproduce the experiments of the paper. Note that the totally ordered reference event logs are not provided on this Github as they are quite large in size and publicly available. Edit the file names of the actually used totally ordered event log files in the "ExperimentPartialOrderConFormanceAnalysis.py" test script (lines 24 ff.) accordingly.
 
-2.) Set the experiment configuration: <br>
-    a.) In line 49, choose to conduct the experiment using partially (or totally ordered) event logs by setting the corresponding flag to True (else False).   
-    b.) In line 50, set the number of iterations. If you are just interested in the fitness values, one iteration is sufficent. If you are interested in runtime experiments, more iterations may be useful. The experiments in the article were conducted with 100 iterations.
+2.) Set the experiment configuration (if required): <br>
+    a.) In line 18, set the number of iterations (number of tests per pair). If you are just interested in the fitness values, one iteration is sufficent. If you are interested in runtime experiments, more iterations may be useful. The experiments in the article were conducted with 100 iterations.
+    (If you would like to use the algorithms as classic token-based replay algorithms to conduct experiments on totally ordered event logs, set the "is_experiment_with_po flag to False.)   
 
 3.) Run the experiments.
 
