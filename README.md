@@ -1,5 +1,5 @@
 # TokenBasedReplayForPartialOrders
-Algorithm for exact Token-based Replay on partially ordered event logs in certain-true concurrent semantics and workflow nets, and a fast algorithm variant for calculating upper and lower fitness bounds. Submitted to CAiSE'26 (technical / technology oriented track).
+Algorithm for caluclating an exact fitness value using token-based replay on partially ordered event logs in certain-true concurrent semantics and workflow nets, and a fast algorithm variant for calculating upper and lower fitness bounds. Submitted to CAiSE'26 (technical / technology oriented track).
 
 To reproduce the experimental results in the paper, or to conduct own experiments, please use the script "ExperimentPartialOrderConFormanceAnalysis.py" in the folder source/experiments.
 
