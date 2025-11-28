@@ -1,0 +1,79 @@
+Observed problems for experiments at time: 2025-04-23 21:39:37.406788.
+PO_successors none found in file data/partially_ordered_logs/BPI12_olog_alpha_logwise_oneRperPoVar.xes in run 43.0at event ids 10110.
+PO_successors none found in file data/partially_ordered_logs/BPI12_olog_alpha_logwise_oneRperPoVar.xes in run 56.0at event ids 18541.
+PO_successors none found in file data/partially_ordered_logs/BPI12_olog_alpha_logwise_oneRperPoVar.xes in run 43.0at event ids 10110.
+PO_successors none found in file data/partially_ordered_logs/BPI12_olog_alpha_logwise_oneRperPoVar.xes in run 56.0at event ids 18541.
+PO_successors none found in file data/partially_ordered_logs/bpi2019_C_alpha_logwise_oneRperPoVar.xes in run 149.0at event ids 24913.
+PO_successors none found in file data/partially_ordered_logs/bpi2019_C_alpha_logwise_oneRperPoVar.xes in run 149.0at event ids 24913.
+PO_successors none found in file data/partially_ordered_logs/reviewing_alpha_logwise_oneRperPoVar.xes in run 30.0at event ids 650.
+PO_successors none found in file data/partially_ordered_logs/reviewing_alpha_logwise_oneRperPoVar.xes in run 30.0at event ids 650.
+END LOG FOR EXPERIMENT AT TIME 2025-04-23 21:39:37.406788.
+Observed problems for experiments at time: 2025-05-03 19:55:59.843452.
+Observed problems for experiments at time: 2025-05-05 15:40:40.598167.
+PO_successors none found in file data/partially_ordered_logs/BPI12_olog_alpha_logwise_oneRperPoVar.xes in run 43.0at event ids 10110.
+PO_successors none found in file data/partially_ordered_logs/BPI12_olog_alpha_logwise_oneRperPoVar.xes in run 56.0at event ids 18541.
+PO_successors none found in file data/partially_ordered_logs/BPI12_olog_alpha_logwise_oneRperPoVar.xes in run 43.0at event ids 10110.
+PO_successors none found in file data/partially_ordered_logs/BPI12_olog_alpha_logwise_oneRperPoVar.xes in run 56.0at event ids 18541.
+PO_successors none found in file data/partially_ordered_logs/bpi2019_C_alpha_logwise_oneRperPoVar.xes in run 149.0at event ids 24913.
+PO_successors none found in file data/partially_ordered_logs/bpi2019_C_alpha_logwise_oneRperPoVar.xes in run 149.0at event ids 24913.
+PO_successors none found in file data/partially_ordered_logs/reviewing_alpha_logwise_oneRperPoVar.xes in run 30.0at event ids 650.
+PO_successors none found in file data/partially_ordered_logs/reviewing_alpha_logwise_oneRperPoVar.xes in run 30.0at event ids 650.
+END LOG FOR EXPERIMENT AT TIME 2025-05-05 15:40:40.598167.
+Observed problems for experiments at time: 2025-05-05 15:42:09.010171.
+END LOG FOR EXPERIMENT AT TIME 2025-05-05 15:42:09.010171.
+Observed problems for experiments at time: 2025-05-22 09:17:45.407977.
+PO_successors none found in file data/partially_ordered_logs/BPI12_olog_alpha_logwise_oneRperPoVar.xes in run 43.0at event ids 10110.
+PO_successors none found in file data/partially_ordered_logs/BPI12_olog_alpha_logwise_oneRperPoVar.xes in run 56.0at event ids 18541.
+PO_successors none found in file data/partially_ordered_logs/BPI12_olog_alpha_logwise_oneRperPoVar.xes in run 43.0at event ids 10110.
+PO_successors none found in file data/partially_ordered_logs/BPI12_olog_alpha_logwise_oneRperPoVar.xes in run 56.0at event ids 18541.
+PO_successors none found in file data/partially_ordered_logs/bpi2019_C_alpha_logwise_oneRperPoVar.xes in run 149.0at event ids 24913.
+PO_successors none found in file data/partially_ordered_logs/bpi2019_C_alpha_logwise_oneRperPoVar.xes in run 149.0at event ids 24913.
+PO_successors none found in file data/partially_ordered_logs/reviewing_alpha_logwise_oneRperPoVar.xes in run 30.0at event ids 650.
+PO_successors none found in file data/partially_ordered_logs/reviewing_alpha_logwise_oneRperPoVar.xes in run 30.0at event ids 650.
+END LOG FOR EXPERIMENT AT TIME 2025-05-22 09:17:45.407977.
+Observed problems for experiments at time: 2025-11-25 12:17:36.342162.
+Observed problems for experiments at time: 2025-11-25 12:22:06.657508.
+Observed problems for experiments at time: 2025-11-25 12:23:16.843231.
+Observed problems for experiments at time: 2025-11-25 12:38:26.705523.
+Observed problems for experiments at time: 2025-11-25 12:41:16.702307.
+Observed problems for experiments at time: 2025-11-25 12:46:22.537836.
+Observed problems for experiments at time: 2025-11-25 12:46:57.345368.
+Observed problems for experiments at time: 2025-11-25 12:47:59.087823.
+Observed problems for experiments at time: 2025-11-25 12:49:32.579243.
+Observed problems for experiments at time: 2025-11-25 12:50:11.314579.
+Observed problems for experiments at time: 2025-11-25 12:50:36.472886.
+END LOG FOR EXPERIMENT AT TIME 2025-11-25 12:50:36.472886.
+Observed problems for experiments at time: 2025-11-25 13:04:15.190771.
+END LOG FOR EXPERIMENT AT TIME 2025-11-25 13:04:15.190771.
+Observed problems for experiments at time: 2025-11-25 13:13:13.904693.
+Observed problems for experiments at time: 2025-11-25 13:14:10.723833.
+PO_successors none found in file data/partially_ordered_logs/BPI12_olog_alpha_logwise_oneRperPoVar.xes in run 43.0at event ids 10110.
+PO_successors none found in file data/partially_ordered_logs/BPI12_olog_alpha_logwise_oneRperPoVar.xes in run 56.0at event ids 18541.
+END LOG FOR EXPERIMENT AT TIME 2025-11-25 13:14:10.723833.
+Observed problems for experiments at time: 2025-11-25 13:24:01.854681.
+Observed problems for experiments at time: 2025-11-25 13:24:35.964431.
+PO_successors none found in file data/partially_ordered_logs/bpi2019_C_alpha_logwise_oneRperPoVar.xes in run 149.0at event ids 24913.
+END LOG FOR EXPERIMENT AT TIME 2025-11-25 13:24:35.964431.
+Observed problems for experiments at time: 2025-11-25 13:29:18.754872.
+PO_successors none found in file data/partially_ordered_logs/reviewing_alpha_logwise_oneRperPoVar.xes in run 30.0at event ids 650.
+END LOG FOR EXPERIMENT AT TIME 2025-11-25 13:29:18.754872.
+Observed problems for experiments at time: 2025-11-25 13:43:04.933330.
+END LOG FOR EXPERIMENT AT TIME 2025-11-25 13:43:04.933330.
+Observed problems for experiments at time: 2025-11-25 13:48:55.419781.
+END LOG FOR EXPERIMENT AT TIME 2025-11-25 13:48:55.419781.
+Observed problems for experiments at time: 2025-11-25 14:45:16.162719.
+END LOG FOR EXPERIMENT AT TIME 2025-11-25 14:45:16.162719.
+Observed problems for experiments at time: 2025-11-25 16:13:14.065007.
+Observed problems for experiments at time: 2025-11-25 16:15:47.357822.
+END LOG FOR EXPERIMENT AT TIME 2025-11-25 16:15:47.357822.
+Observed problems for experiments at time: 2025-11-25 16:18:25.079977.
+END LOG FOR EXPERIMENT AT TIME 2025-11-25 16:18:25.079977.
+Observed problems for experiments at time: 2025-11-25 16:20:13.388623.
+END LOG FOR EXPERIMENT AT TIME 2025-11-25 16:20:13.388623.
+Observed problems for experiments at time: 2025-11-28 11:12:18.569165.
+END LOG FOR EXPERIMENT AT TIME 2025-11-28 11:12:18.569165.
+Observed problems for experiments at time: 2025-11-28 11:23:20.604849.
+END LOG FOR EXPERIMENT AT TIME 2025-11-28 11:23:20.604849.
+Observed problems for experiments at time: 2025-11-28 11:23:36.575938.
+Observed problems for experiments at time: 2025-11-28 11:23:55.038794.
+END LOG FOR EXPERIMENT AT TIME 2025-11-28 11:23:55.038794.
