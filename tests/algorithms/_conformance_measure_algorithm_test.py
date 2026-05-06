@@ -114,6 +114,7 @@ class MyTestCase(unittest.TestCase):
                                                                                                                  True)
 
         self.assertEqual(1, result.run_to_conformance_result[run_1].conformance_level_min)  # first run should be completely fine
+        # TODO these differences cannot be explained like the others; check again
         self.assertEqual(0.8035714285714286, result.run_to_conformance_result[run_2].conformance_level_min)
         self.assertEqual(0.8666232921275212, result.conformance_level)
 
@@ -141,24 +142,22 @@ class MyTestCase(unittest.TestCase):
 
         run_to_frequency: dict[Run, int] = {run_1: 3}
         event_log: PartiallyOrderedEventLog = PartiallyOrderedEventLog(run_to_frequency)
-        start_full_algorithm = time.time()
         result: PartiallyOrderedLogConformanceResult = calculate_token_replay_conformance_norm_for_partial_order(event_log,
                                                                                                                  self.net_2,
                                                                                                                  True)
-        end_full_algorithm = time.time()
-        time_full_algorithm = end_full_algorithm - start_full_algorithm
         self.assertEqual(0.8, result.conformance_level)
         # following is just a sanity check: the quick procedure should yield an upper bound bigger than the conformance result and
         # a lower bound; indeed in this case the upper bound should be 1, as theoretically there are no missing tokens (in the correct order)
-        start_quick_algorithm = time.time()
+        # UPDATE: After the optimized logic, which checks if there are any "crossroads" where tokens could go wrong, the backward heuristic
+        # now sees that there the observed missing token cannot be optimized. Thus we get the correct measure here.
+        # TODO Write tests with additional events before current run to provoke error again
+
         result_quick_algorithm: PartiallyOrderedLogConformanceResult = calculate_token_replay_conformance_norm_for_partial_order(event_log,
                                                                                                                                  self.net_2,
                                                                                                                                  False)
-        end_quick_algorithm = time.time()
-        time_quick_algorithm = end_quick_algorithm - start_quick_algorithm
         self.assertGreaterEqual(result_quick_algorithm.upper_bound_conformance, result.conformance_level)
         self.assertLessEqual(result_quick_algorithm.lower_bound_conformance, result.conformance_level)
-        self.assertAlmostEqual(1.0, result_quick_algorithm.upper_bound_conformance, places=8)
+        self.assertAlmostEqual(0.8, result_quick_algorithm.upper_bound_conformance, places=8)
 
 
 if __name__ == '__main__':
