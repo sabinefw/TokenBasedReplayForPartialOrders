@@ -10,7 +10,6 @@ def do_conformance_checking_for_partially_ordered_log(
         include_runs_with_invalid_labels: bool = True,
         only_use_heuristics: bool = False,
         add_initial_and_start_events: bool = False,
-        event_id_to_missing_successors: dict[int, list[int]] = None
 ) -> PartiallyOrderedLogConformanceResult:
     """
     TODO
@@ -22,17 +21,15 @@ def do_conformance_checking_for_partially_ordered_log(
         only_use_heuristics: if true only the heuristics will be used to calculate lower and upper bounds for the conformance measure in linear time;
                 if false the precise values are calculated using a maximal flow algorithm, with worst case cubic time
         add_initial_and_start_events: if true start and end event will be included to all runs TODO really needed or should I decide baed on the net?
-        event_id_to_missing_successors: allows to overcome the rare bug when reading the xes files with partial orders by manually providing for each
-                wrongly read successor field the correct successors
-
     Returns:
 
     """
     net, label_to_transition = import_pnml_file_to_workflow_net(net_file_path)
+    #TODO complete remove the old event_id_to_successors argument (not needed anymore)
     log, run_to_invalid_label, result_flags_for_correcting_missing_successors = import_cco_xes_file_to_event_log(event_log_file_path,
                                                                                                                  label_to_transition,
                                                                                                                  include_runs_with_invalid_labels,
-                                                                                                                 event_id_to_missing_successors,
+                                                                                                                 {},
                                                                                                                  add_initial_and_start_events)
     result: PartiallyOrderedLogConformanceResult = calculate_token_replay_conformance_norm_for_partial_order(log,
                                                                                                              net,

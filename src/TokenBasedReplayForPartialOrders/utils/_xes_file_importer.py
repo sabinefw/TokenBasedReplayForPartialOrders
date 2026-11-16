@@ -11,6 +11,7 @@ from src.TokenBasedReplayForPartialOrders.structures._partially_ordered_event_lo
 from src.TokenBasedReplayForPartialOrders.structures._run import EventForRun, Run
 from src.TokenBasedReplayForPartialOrders.structures._total_order_for_run import TotalOrder4Run
 from src.TokenBasedReplayForPartialOrders.structures._workflow_net import TransitionWorkflowNet
+from src.TokenBasedReplayForPartialOrders.utils._listenbug import patche_iterparse
 
 
 # TODO why do I need a special method for totally ordered logs again?
@@ -83,7 +84,7 @@ def import_xes_file_totally_ordered_log(
 def import_cco_xes_file_to_event_log(file_path: str,
                                      name_to_transition: dict[str, TransitionWorkflowNet],
                                      include_runs_with_invalid_transitions=True,
-                                     event_id_to_successors: dict[int, list[int]] = None,
+                                     event_id_to_successors: dict[int, list[int]] = [],
                                      add_start_and_end_events=True) \
         -> Tuple[PartiallyOrderedEventLog, dict[Any, str], dict[int, bool]]:
     """
@@ -104,7 +105,8 @@ def import_cco_xes_file_to_event_log(file_path: str,
     """
     if add_start_and_end_events and ("START" not in name_to_transition or "END" not in name_to_transition):
         raise ValueError("Missing required transitions: 'START' and 'END' must be present in name_to_transition.")
-    log_external_format = pm4py.read_xes(file_path)
+    patche_iterparse()
+    log_external_format = pm4py.read_xes(file_path, variant="iterparse")
     df_log: pd.DataFrame = log_converter.apply(log_external_format, variant=log_converter.Variants.TO_DATA_FRAME)
 
     run_to_frequency: dict[Run, int] = {}
@@ -153,7 +155,7 @@ def _process_case(case_id: Any,
                 return None, None, invalid_label
             transition_name = "INVALID"
 
-        event = EventForRun(f"Event ID {row['identity:id']} from PO {case_id}", name_to_transition[transition_name])
+        event = EventForRun(f"Event ID {row['identity:id']} from PO {case_id}", name_to_transition[transition_name], row['identity:id'])
         event_id_to_event[row["identity:id"]] = event
         event_list.append(event)
 

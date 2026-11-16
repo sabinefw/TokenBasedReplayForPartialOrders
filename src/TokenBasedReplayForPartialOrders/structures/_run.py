@@ -5,9 +5,10 @@ from src.TokenBasedReplayForPartialOrders.structures._workflow_net import Transi
 
 
 class EventForRun:
-    def __init__(self, name: str, label: TransitionWorkflowNet):
+    def __init__(self, name: str, label: TransitionWorkflowNet, foreign_id: int = -1):
         self.name = name
         self.label = label
+        self.foreign_id = foreign_id
 
     def __str__(self):
         return "Event name: %s, Label: %s, Activity %s" % (self.name, self.label, self.label.activity_description)
