@@ -1,3 +1,6 @@
+from enum import Enum
+import math
+
 from src.TokenBasedReplayForPartialOrders.structures._run import Run
 from src.TokenBasedReplayForPartialOrders.structures._run_conformance_result import RunConformanceResult
 from src.TokenBasedReplayForPartialOrders.structures._single_place_token_result import SinglePlaceTokenResult
@@ -51,6 +54,19 @@ class PlaceStatistics:
         self.remaining_token_min += result.remaining_token_min
 
 
+class RunWithConformanceResult:
+
+    def __init__(self, run: Run, conformance_result: RunConformanceResult):
+        self.run = run
+        self.conformance_result = conformance_result
+
+
+class LevelType(Enum):
+    LOWER_BOUND = -1
+    MIDDLE = 0
+    UPPER_BOUND = 1
+
+
 class PartiallyOrderedLogConformanceResult:
     def __init__(self, is_precise_result: bool = False,
                  lower_bound_conformance: float = 0,
@@ -99,8 +115,8 @@ class PartiallyOrderedLogConformanceResult:
         )
         self.conformance_level = (self.lower_bound_conformance + self.upper_bound_conformance) / 2
         self.is_precise_result = (self.lower_bound_conformance == self.upper_bound_conformance)
-        # Just to be sure we reset the statistics how places where decided (should not be relevant in my code but
-        # it is always good to guarantee consistency
+        # Just to be sure we reset the statistics how places where decided (should not be relevant in my code, but
+        # it is always good to guarantee consistency)
         self.number_places_decided_forward_heuristic = 0
         self.number_places_decided_backward_heuristic = 0
         self.number_places_decided_flow_network = 0
@@ -122,3 +138,29 @@ class PartiallyOrderedLogConformanceResult:
             self.remaining_tokens_max += run_result.remaining_token_max
             self.remaining_tokens_min += run_result.remaining_token_min
             self.produced_tokens += run_result.produced_token
+
+    def find_runs_with_worst_conformance_values(self, number_runs: int, level_type: LevelType) -> list[RunWithConformanceResult]:
+        if (level_type is None) or (not isinstance(level_type, LevelType)):
+            raise ValueError("Need to specify which conformance level shall be used with valid LevelType argument.")
+        if (number_runs is None) or (not isinstance(number_runs, int)) or (number_runs < 0):
+            raise ValueError("Need to specify how many runs you want to see with a valid non-negative integer.")
+        if number_runs is 0:
+            return []
+
+        def get_relevant_level(result: RunConformanceResult) -> float:
+            if level_type is LevelType.LOWER_BOUND:
+                return result.conformance_level_min
+            elif level_type is LevelType.UPPER_BOUND:
+                return result.conformance_level_max
+            elif level_type is LevelType.MIDDLE:
+                return (result.conformance_level_max + result.conformance_level_min) / 2
+            else:
+                raise NotImplementedError("Implementation missing for level type " + level_type.name)
+
+        all_runs_with_conformance_result: list[RunWithConformanceResult] \
+            = [RunWithConformanceResult(r, self.run_to_conformance_result[r]) for r in self.run_to_conformance_result]
+        values_with_conformance_level_less_than_one = list(filter(lambda rwcr: not math.isclose(get_relevant_level(rwcr.conformance_result), 1),
+                                                                  all_runs_with_conformance_result))
+        values_sorted_ascending_by_relevant_level = values_with_conformance_level_less_than_one.sort(
+            key=lambda rwcr: get_relevant_level(rwcr.conformance_result))
+        return values_sorted_ascending_by_relevant_level[0:number_runs]
