@@ -64,6 +64,6 @@ def do_brute_force_heuristic_for_token_analysis(run: Run, model: WorkflowNet, pl
         corrected_value_remaining_token = result.produced_token - result.consumed_token + result.remaining_token_max
         result.missing_token_max, result.remaining_token_max = result.remaining_token_max, corrected_value_remaining_token
     # If we did not have a critical situation we can mark the result as precise
-    if not had_critical_situation:
-        result.mark_self_as_precise()
+    # if not had_critical_situation:
+    #    result.mark_self_as_precise()
     return result

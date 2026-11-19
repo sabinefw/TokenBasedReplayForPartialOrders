@@ -21,6 +21,7 @@ def do_conformance_checking_for_partially_ordered_log(
         only_use_heuristics: if true only the heuristics will be used to calculate lower and upper bounds for the conformance measure in linear time;
                 if false the precise values are calculated using a maximal flow algorithm, with worst case cubic time
         add_initial_and_start_events: if true start and end event will be included to all runs TODO really needed or should I decide baed on the net?
+        TODO also note that flag below is not used the way i originally intended...
     Returns:
 
     """
