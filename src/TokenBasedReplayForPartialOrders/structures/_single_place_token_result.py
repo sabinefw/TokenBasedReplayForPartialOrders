@@ -15,13 +15,7 @@ class SinglePlaceTokenResult:
                                                                                                 self.missing_token_min, self.missing_token_max,
                                                                                                 self.remaining_token_min, self.remaining_token_max)
 
-    def mark_self_as_precise(self):
-        """
-        Method is supposed to be called in the context of a heuristic that made an estimate for the maximal numbers of
-        missing and remaining tokens and one finds out that it is precise. The method then sets the max values and the
-        precise flag accordingly.
-        :return:
-        """
+    def mark_self_as_precise_as_upper_bounds_for_missing_and_remaining_tokens_are_correct(self):
         self.missing_token_min = self.missing_token_max
         self.remaining_token_min = self.remaining_token_max
         self.is_precise = True

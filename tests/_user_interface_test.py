@@ -50,8 +50,8 @@ class TestUserInterface(unittest.TestCase):
             "test_ressources/BPI12_olog_alpha_logwise_oneRperPoVar.xes", "test_ressources/bpi2012_olog_5.pnml",
             only_use_heuristics=True
         )
-        self.verify_test_case_result(result_lf_heuristic_only, False, 0.9266383801965397, 0.9298480884648361,
-                                     0.9282432343306879)
+        self.verify_test_case_result(result_lf_heuristic_only, False, 0.9266383801965397, 0.9292764965814408,
+                                     0.9279574383889903)
         result_hf_precise = do_conformance_checking_for_partially_ordered_log(
             "test_ressources/BPI12_olog_alpha_logwise_oneRperPoVar.xes", "test_ressources/bpi2012_olog_10.pnml"
         )
@@ -84,8 +84,8 @@ class TestUserInterface(unittest.TestCase):
             "test_ressources/bpi2019_C_alpha_logwise_oneRperPoVar.xes", "test_ressources/bpi2019c_10.pnml",
             only_use_heuristics=True
         )
-        self.verify_test_case_result(result_hf_heuristic_only, False, 0.9749138994004847, 1,
-                                     0.9874569497002423)
+        self.verify_test_case_result(result_hf_heuristic_only, False, 0.9749138994004847, 0.9968429780177729,
+                                     0.9858784387091288)
 
 
 if __name__ == '__main__':

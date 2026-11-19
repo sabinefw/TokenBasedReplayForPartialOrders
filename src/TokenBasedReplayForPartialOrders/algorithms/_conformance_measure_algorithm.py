@@ -62,7 +62,7 @@ def calculate_token_replay_conformance_norm_for_partial_order(event_log: Partial
                 # Note: the heuristic itself might already have detected its own preciseness!
                 if (missing_token_theoretic_optimum == forward_heuristic.missing_token_max or forward_heuristic.is_precise
                         or is_total_order):
-                    forward_heuristic.mark_self_as_precise()
+                    forward_heuristic.mark_self_as_precise_as_upper_bounds_for_missing_and_remaining_tokens_are_correct()
                     result_run.add_single_place_result(forward_heuristic)
                     result_run.number_places_decided_forward_heuristic += 1
                     place_to_decision_statistic[place.name].forward_heuristic += 1
@@ -71,7 +71,7 @@ def calculate_token_replay_conformance_norm_for_partial_order(event_log: Partial
                 # Forward heuristic failed, now try backward heuristic.
                 backward_heuristic: SinglePlaceTokenResult = do_brute_force_heuristic_for_token_analysis(run, model, place, True)
                 if missing_token_theoretic_optimum == backward_heuristic.missing_token_max or backward_heuristic.is_precise:
-                    backward_heuristic.mark_self_as_precise()
+                    backward_heuristic.mark_self_as_precise_as_upper_bounds_for_missing_and_remaining_tokens_are_correct()
                     result_run.add_single_place_result(backward_heuristic)
                     result_run.number_places_decided_backward_heuristic += 1
                     place_to_decision_statistic[place.name].backward_heuristic += 1
@@ -85,7 +85,8 @@ def calculate_token_replay_conformance_norm_for_partial_order(event_log: Partial
                 result_run.number_places_decided_flow_network += 1
             else:
                 better_heuristic = forward_heuristic if forward_heuristic.missing_token_max <= backward_heuristic.missing_token_max else backward_heuristic
-                better_heuristic.missing_token_min = missing_token_theoretic_optimum
+                # the brute-force heuristic might have seen that the minimum number of missing tokens is higher than the theoretic optimum
+                better_heuristic.missing_token_min = max(missing_token_theoretic_optimum, better_heuristic.missing_token_min)
                 better_heuristic.remaining_token_min = (better_heuristic.produced_token - better_heuristic.consumed_token
                                                         + better_heuristic.missing_token_min)
                 result_to_use = better_heuristic
