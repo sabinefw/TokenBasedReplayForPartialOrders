@@ -144,7 +144,7 @@ class PartiallyOrderedLogConformanceResult:
             raise ValueError("Need to specify which conformance level shall be used with valid LevelType argument.")
         if (number_runs is None) or (not isinstance(number_runs, int)) or (number_runs < 0):
             raise ValueError("Need to specify how many runs you want to see with a valid non-negative integer.")
-        if number_runs is 0:
+        if number_runs == 0:
             return []
 
         def get_relevant_level(result: RunConformanceResult) -> float:
@@ -161,6 +161,5 @@ class PartiallyOrderedLogConformanceResult:
             = [RunWithConformanceResult(r, self.run_to_conformance_result[r]) for r in self.run_to_conformance_result]
         values_with_conformance_level_less_than_one = list(filter(lambda rwcr: not math.isclose(get_relevant_level(rwcr.conformance_result), 1),
                                                                   all_runs_with_conformance_result))
-        values_sorted_ascending_by_relevant_level = values_with_conformance_level_less_than_one.sort(
-            key=lambda rwcr: get_relevant_level(rwcr.conformance_result))
-        return values_sorted_ascending_by_relevant_level[0:number_runs]
+        values_with_conformance_level_less_than_one.sort(key=lambda rwcr: get_relevant_level(rwcr.conformance_result))
+        return values_with_conformance_level_less_than_one[0:number_runs]

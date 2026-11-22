@@ -147,15 +147,20 @@ def _process_case(case_id: Any,
     invalid_label = None
 
     # Process events and detect invalid transitions
+    transition_to_use: TransitionWorkflowNet
     for _, row in df_part.iterrows():
-        transition_name = row["concept:name"]
+        activity_name = row["concept:name"]
+        transition_name = activity_name
         if transition_name not in name_to_transition:
             invalid_label = transition_name
             if not include_invalid:
                 return None, None, invalid_label
-            transition_name = "INVALID"
+            transition_to_use = TransitionWorkflowNet(f"Invalid Event {row['identity:id']} from PO {case_id}",
+                                                      activity_desription= f"MISSING ACTIVITY({activity_name})")
+        else:
+            transition_to_use = name_to_transition[transition_name]
 
-        event = EventForRun(f"Event ID {row['identity:id']} from PO {case_id}", name_to_transition[transition_name], row['identity:id'])
+        event = EventForRun(f"Event ID {row['identity:id']} from PO {case_id}", transition_to_use, row['identity:id'])
         event_id_to_event[row["identity:id"]] = event
         event_list.append(event)
 

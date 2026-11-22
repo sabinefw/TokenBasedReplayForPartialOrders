@@ -28,6 +28,14 @@ class ImportTester(unittest.TestCase):
         # TODO so far I only had a look to verify it; looks good but should write proper unit test
         self.assertEqual(True, True)  # add assertion here
 
+
+    def test_import_of_bpi_a_log(self):
+        current_dir = Path(__file__).resolve().parent
+        file_path_net = current_dir.parent / "test_ressources" / "bpi2012_alog_5.pnml"
+        file_path_log = current_dir.parent / "test_ressources" / "BPI12_alog_alpha_logwise_oneRperPoVar.xes"
+        net, name_to_transistion = import_pnml_file_to_workflow_net(str(file_path_net))
+        log, invalid_runs, buggy_runs_with_success_flag = import_cco_xes_file_to_event_log(str(file_path_log), name_to_transistion)
+
     def test_import_roadtraffic(self):
         net, name_to_transition = import_pnml_file_to_workflow_net("ressources/roadtraffic_5.pnml")
 

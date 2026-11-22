@@ -13,10 +13,15 @@ import json
 import os
 import subprocess
 import sys
+import traceback
 
+import pandas as pd
 import streamlit as st
 
-from src.TokenBasedReplayForPartialOrders.structures.partially_ordered_log_conformance_result import PartiallyOrderedLogConformanceResult
+from src.TokenBasedReplayForPartialOrders.structures.partially_ordered_log_conformance_result import (
+    LevelType,
+    PartiallyOrderedLogConformanceResult,
+)
 from src.TokenBasedReplayForPartialOrders.user_interface import do_conformance_checking_for_partially_ordered_log as conf_alg_fn
 
 # ---------------------------------------------------------------------------
@@ -127,15 +132,167 @@ def path_input(label, key, placeholder, dialog_title, filetypes):
         )
     return value
 
+
 # ---------------------------------------------------------------------------
 # Result handling
 # ---------------------------------------------------------------------------
-def extract_lower_and_upper_bound_and_conformance_level(result: PartiallyOrderedLogConformanceResult):
+def extract_conformance_values(result: PartiallyOrderedLogConformanceResult):
     if result is None:
         raise ValueError("None is not a valid input.")
 
-    return result.lower_bound_conformance, result.upper_bound_conformance, result.conformance_level
+    return {
+        "lower": result.lower_bound_conformance,
+        "upper": result.upper_bound_conformance,
+        "level": result.conformance_level,
+        "is_precise": result.is_precise_result,
+        "produced": result.produced_tokens,
+        "consumed": result.consumed_tokens,
+        "missing_min": result.missing_tokens_min,
+        "missing_max": result.missing_tokens_max,
+        "remaining_min": result.remaining_tokens_min,
+        "remaining_max": result.remaining_tokens_max,
+        "places_forward": result.number_places_decided_forward_heuristic,
+        "places_backward": result.number_places_decided_backward_heuristic,
+        "places_flow": result.number_places_decided_flow_network,
+        "places_estimated": result.number_places_only_estimated,
+    }
 
+# ---------------------------------------------------------------------------
+# Workflow net visualization (pm4py)
+# ---------------------------------------------------------------------------
+@st.cache_data(show_spinner=False)
+def net_to_dot(path: str, mtime: float) -> str:
+    """
+    Read a PNML file with pm4py and return the Graphviz DOT source of its
+    visualization. `mtime` is only part of the cache key, so the picture is
+    recomputed if the file changes on disk.
+    """
+    import pm4py
+    from pm4py.visualization.petri_net import visualizer as pn_visualizer
+
+    net, initial_marking, final_marking = pm4py.read_pnml(path)
+    gviz = pn_visualizer.apply(net, initial_marking, final_marking)
+    return gviz.source
+
+
+# ---------------------------------------------------------------------------
+# Worst runs: table and visualization of a run
+# ---------------------------------------------------------------------------
+LEVEL_OPTIONS = {
+    "Lower bound": LevelType.LOWER_BOUND,
+    "Middle": LevelType.MIDDLE,
+    "Upper bound": LevelType.UPPER_BOUND,
+}
+
+
+def event_text(event) -> str:
+    """Text shown for an event (a node of the run) in the visualization: its label."""
+    return str(event.label.activity_description)
+
+
+MISSING_ACTIVITY_PREFIX = "MISSING ACTIVITY"
+
+
+def count_missing_activities(run) -> int:
+    """Number of events of the run whose label text starts with MISSING ACTIVITY."""
+    return sum(1 for event in run.partial_order if event_text(event).startswith(MISSING_ACTIVITY_PREFIX))
+
+
+def format_range(minimum, maximum) -> str:
+    return str(minimum) if minimum == maximum else f"{minimum} - {maximum}"
+
+
+def build_run_figure(run):
+    """
+    Draw the partial order of a run (a NetworkX graph) and return a matplotlib figure.
+
+    Long labels are wrapped into several lines. The layout is computed in points from the real size of
+    the label boxes, so that boxes never overlap, however long the labels are.
+    """
+    import textwrap
+
+    import networkx as nx
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
+    from matplotlib.figure import Figure
+
+    FONT_SIZE = 8
+    WRAP_WIDTH = 24  # maximal number of characters per line of a label
+    BOX_PADDING = 8.0  # extra space (points) around the text inside a box
+    GAP_X = 70.0  # horizontal space (points) between two layers, room for the arrows
+    GAP_Y = 16.0  # vertical space (points) between two boxes of the same layer
+    MARGIN = 20.0  # space (points) around the whole picture
+
+    graph = run.partial_order
+    if graph.number_of_nodes() == 0:
+        raise ValueError("The run has no events.")
+
+    # Edges implied by transitivity are hidden, which makes the picture much easier to read.
+    try:
+        graph = nx.transitive_reduction(graph)
+    except Exception:  # noqa: BLE001  (e.g. graph is not acyclic: draw it as it is)
+        pass
+
+    original_texts = {node: event_text(node) for node in graph.nodes}
+    wrapped_texts = {node: textwrap.fill(text, width=WRAP_WIDTH) for node, text in original_texts.items()}
+
+    # Measure the size of every label box (in points).
+    measuring_fig = Figure()
+    FigureCanvasAgg(measuring_fig)
+    renderer = measuring_fig.canvas.get_renderer()
+    box_size = {}
+    for node, text in wrapped_texts.items():
+        item = measuring_fig.text(0, 0, text, fontsize=FONT_SIZE)
+        extent = item.get_window_extent(renderer)
+        box_size[node] = (extent.width * 72.0 / measuring_fig.dpi + BOX_PADDING,
+                          extent.height * 72.0 / measuring_fig.dpi + BOX_PADDING)
+        item.remove()
+
+    # Layers = topological generations (left to right). Not acyclic: one single layer.
+    try:
+        layers = [list(generation) for generation in nx.topological_generations(graph)]
+    except nx.NetworkXUnfeasible:
+        layers = [list(graph.nodes)]
+
+    layer_width = [max(box_size[node][0] for node in layer) for layer in layers]
+    layer_height = [sum(box_size[node][1] for node in layer) + GAP_Y * (len(layer) - 1) for layer in layers]
+    total_width = sum(layer_width) + GAP_X * (len(layers) - 1) + 2 * MARGIN
+    total_height = max(layer_height) + 2 * MARGIN
+
+    # Positions in points: every layer is a column whose boxes are stacked vertically and centered.
+    pos = {}
+    x_left = MARGIN
+    for layer, width, height in zip(layers, layer_width, layer_height):
+        y_top = total_height / 2 + height / 2
+        for node in layer:
+            pos[node] = (x_left + width / 2, y_top - box_size[node][1] / 2)
+            y_top -= box_size[node][1] + GAP_Y
+        x_left += width + GAP_X
+
+    fig = Figure(figsize=(total_width / 72.0, total_height / 72.0))
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.set_xlim(0, total_width)
+    ax.set_ylim(0, total_height)
+    ax.set_axis_off()
+
+    text_items = nx.draw_networkx_labels(graph, pos, labels=wrapped_texts, ax=ax, font_size=FONT_SIZE,
+                                         bbox=dict(boxstyle="round,pad=0.35", fc="#e8f0fe", ec="#5b7db1"))
+    for node, text_item in text_items.items():
+        if original_texts[node].startswith(MISSING_ACTIVITY_PREFIX):
+            text_item.set_color("red")
+    # Every arrow starts and ends exactly at the border of the two label boxes (patchA / patchB),
+    # so the arrow heads are never hidden behind a box, however long the label is.
+    # The arrows are drawn after the labels (zorder 4 > 3), because the boxes only get their final
+    # position when the labels are drawn.
+    for source, target in graph.edges:
+        ax.annotate("", xy=pos[target], xytext=pos[source], zorder=4,
+                    arrowprops=dict(arrowstyle="-|>", color="#666666", mutation_scale=14,
+                                    shrinkA=1, shrinkB=1,
+                                    patchA=text_items[source].get_bbox_patch(),
+                                    patchB=text_items[target].get_bbox_patch()))
+    return fig
+
+
+#
 
 # ---------------------------------------------------------------------------
 # UI
@@ -194,40 +351,166 @@ with left:
             for msg in errors:
                 st.error(msg)
         else:
+            st.session_state.pop("result", None)
+            st.session_state.pop("result_error", None)
+            st.session_state.pop("result_object", None)
             try:
                 with st.spinner("Calculating conformance..."):
                     result = conformance_fn(
                         log_path.strip(), net_path.strip(), **bool_values
                     )
-                lower, upper, conformance_level = extract_lower_and_upper_bound_and_conformance_level(result)
-                st.session_state["result"] = {
-                    "lower": lower,
-                    "upper": upper,
-                    "raw": conformance_level,
-                }
-            except Exception as e:  # noqa: BLE001
-                st.session_state.pop("result", None)
-                st.error("The calculation failed.")
-                st.exception(e)
-
-    res = st.session_state.get("result")
-    if res:
-        st.subheader("Result")
-        conformance_value = (res["lower"] + res["upper"]) / 2
-        st.metric("Lower bound", f"{res['lower']:.4f}")
-        st.metric("Upper bound", f"{res['upper']:.4f}")
-        st.metric("Conformance value", f"{conformance_value:.4f}")
-        with st.expander("Raw return value of the function"):
-            st.code(res["raw"])
+                st.session_state["result"] = extract_conformance_values(result)
+                st.session_state["result_object"] = result
+            except Exception:  # noqa: BLE001
+                st.session_state["result_error"] = traceback.format_exc()
 
 with right:
-    with st.expander("Function details (read from the code)", expanded=False):
-        st.write(f"`{FUNCTION_NAME}{inspect.signature(conformance_fn)}`")
-        st.write(
-            "First two parameters used for the paths: "
-            + ", ".join(f"`{p.name}`" for p in leading)
+    st.subheader("Workflow net")
+
+    net_file = net_path.strip()
+    if not net_file:
+        st.info("Select a workflow net (.pnml) to see its visualization here.")
+    elif not net_file.lower().endswith(".pnml"):
+        st.error("Input file for Workflow net is not a pnml-file.")
+    elif not os.path.isfile(net_file):
+        st.error(f"Workflow net file not found: {net_file}")
+    else:
+        try:
+            dot_source = net_to_dot(net_file, os.path.getmtime(net_file))
+            st.graphviz_chart(dot_source, use_container_width=True)
+        except Exception as e:  # noqa: BLE001
+            st.error(f"Error while reading or visualizing the workflow net: {e}")
+
+# ----- second row: result, below both the input menu and the net -----
+result_left, result_right = st.columns([1, 2], gap="large")
+
+with result_left:
+    res = st.session_state.get("result")
+    error_details = st.session_state.get("result_error")
+    if error_details:
+        st.subheader("Result")
+        st.error("Error during calculation")
+        with st.expander("Error details"):
+            st.code(error_details)
+    elif res:
+        st.subheader("Result")
+        digits = st.number_input("Decimal digits", min_value=0, max_value=10, value=4, step=1, key="decimal_digits")
+        if res["is_precise"]:
+            st.metric("Conformance level", f"{res['level']:.{digits}f}")
+        else:
+            st.metric("Conformance level (bounds)", f"{res['lower']:.{digits}f} - {res['upper']:.{digits}f}")
+            st.metric("Estimated conformance level", f"{res['level']:.{digits}f}")
+
+        # ----- token information -----
+        st.markdown("&nbsp;")
+        if res["is_precise"]:
+            missing_text = f"{res['missing_min']}"
+            remaining_text = f"{res['remaining_min']}"
+        else:
+            missing_text = f"{res['missing_min']} - {res['missing_max']}"
+            remaining_text = f"{res['remaining_min']} - {res['remaining_max']}"
+        st.markdown(
+            f"**Produced tokens:** {res['produced']}  \n"
+            f"**Consumed tokens:** {res['consumed']}  \n"
+            f"**Missing tokens:** {missing_text}  \n"
+            f"**Remaining tokens:** {remaining_text}"
         )
-        st.write(
-            "Boolean parameters: "
-            + (", ".join(f"`{n}` (default {d})" for n, d in bool_params) or "none found")
-        )
+
+        # ----- how the places were decided -----
+        st.markdown("&nbsp;")
+        place_lines = [
+            f"**Places decided by forward heuristic:** {res['places_forward']}",
+            f"**Places decided by backward heuristic:** {res['places_backward']}",
+        ]
+        if res["places_flow"] != 0:
+            place_lines.append(f"**Places decided by flow algorithm:** {res['places_flow']}")
+        if res["places_estimated"] != 0:
+            place_lines.append(f"**Places only estimated:** {res['places_estimated']}")
+        st.markdown("  \n".join(place_lines))
+
+with result_right:
+    result_object = st.session_state.get("result_object")
+    current_result = st.session_state.get("result")
+    if current_result and result_object is not None:
+        st.subheader("Worst runs")
+
+        control_left, control_right = st.columns(2)
+        if current_result["is_precise"]:
+            level_type = LevelType.MIDDLE  # lower bound = upper bound, so the choice would make no difference
+        else:
+            with control_right:
+                level_name = st.selectbox("Rank runs by", list(LEVEL_OPTIONS), key="worst_runs_level")
+            level_type = LEVEL_OPTIONS[level_name]
+
+        # All runs that are not perfect, worst first. Its length is the maximal number of runs one can select.
+        try:
+            all_worst_runs = result_object.find_runs_with_worst_conformance_values(
+                len(result_object.run_to_conformance_result), level_type)
+        except Exception as e:  # noqa: BLE001
+            all_worst_runs = None
+            st.error(f"Error while determining the worst runs: {e}")
+
+        worst_runs = None
+        if all_worst_runs is not None and all_worst_runs:
+            maximal_number_runs = len(all_worst_runs)
+            # Keep the stored selection valid if the maximum got smaller (e.g. after changing the ranking).
+            st.session_state.setdefault("worst_runs_count", min(5, maximal_number_runs))
+            if st.session_state["worst_runs_count"] > maximal_number_runs:
+                st.session_state["worst_runs_count"] = maximal_number_runs
+            with control_left:
+                number_runs = st.number_input(
+                    "Number of runs", min_value=1, max_value=maximal_number_runs, step=1, key="worst_runs_count",
+                    help=f"At most {maximal_number_runs}: the number of runs with a conformance level below 1.")
+            worst_runs = all_worst_runs[:int(number_runs)]
+        elif all_worst_runs is not None:
+            worst_runs = []
+
+        if worst_runs is not None:
+            if not worst_runs:
+                st.info("There are no runs with a conformance level below 1.")
+            else:
+                digits_runs = st.session_state.get("decimal_digits", 4)
+                rows = []
+                for rank, entry in enumerate(worst_runs, start=1):
+                    run_result = entry.conformance_result
+                    row = {
+                        "Rank": rank,
+                        "Run": entry.run.name_foreign_source,
+                        "Events": len(entry.run.partial_order),
+                        "Missing activities": count_missing_activities(entry.run),
+                    }
+                    if current_result["is_precise"]:
+                        row["Conformance level"] = run_result.conformance_level_min
+                    else:
+                        row["Lower bound"] = run_result.conformance_level_min
+                        row["Upper bound"] = run_result.conformance_level_max
+                    row["Missing tokens"] = format_range(run_result.missing_token_min, run_result.missing_token_max)
+                    row["Remaining tokens"] = format_range(run_result.remaining_token_min, run_result.remaining_token_max)
+                    rows.append(row)
+
+                number_format = f"%.{digits_runs}f"
+                column_config = {
+                    name: st.column_config.NumberColumn(name, format=number_format)
+                    for name in ("Conformance level", "Lower bound", "Upper bound")
+                }
+                table_event = st.dataframe(
+                    pd.DataFrame(rows),
+                    hide_index=True,
+                    use_container_width=True,
+                    column_config=column_config,
+                    on_select="rerun",
+                    selection_mode="single-row",
+                    key="worst_runs_table",
+                )
+                selected_rows = table_event.selection.rows
+                selected = selected_rows[0] if selected_rows else 0
+                if selected >= len(worst_runs):
+                    selected = 0
+
+                selected_run = worst_runs[selected].run
+                st.caption(f"Run {selected + 1}: {selected_run.name_foreign_source} "
+                           f"({len(selected_run.partial_order)} events). Click a row of the table to show another run.")
+                try:
+                    st.pyplot(build_run_figure(selected_run), use_container_width=True)
+                except Exception as e:  # noqa: BLE001
+                    st.error(f"Error while visualizing the run: {e}")

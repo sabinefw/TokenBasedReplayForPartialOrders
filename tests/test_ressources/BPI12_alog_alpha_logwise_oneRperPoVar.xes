@@ -1,0 +1,809 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<log xes.version="1849-2016" xes.features="nested-attributes" xmlns="http://www.xes-standard.org/">
+	<extension name="Time" prefix="time" uri="http://www.xes-standard.org/time.xesext" />
+	<extension name="Lifecycle" prefix="lifecycle" uri="http://www.xes-standard.org/lifecycle.xesext" />
+	<extension name="Identity" prefix="identity" uri="http://www.xes-standard.org/identity.xesext" />
+	<extension name="Organizational" prefix="org" uri="http://www.xes-standard.org/org.xesext" />
+	<extension name="Concept" prefix="concept" uri="http://www.xes-standard.org/concept.xesext" />
+	<string key="origin" value="csv" />
+	<trace>
+		<date key="REG_DATE" value="2011-10-01T00:38:44.546000+00:00" />
+		<string key="concept:name" value="173688" />
+		<string key="AMOUNT_REQ" value="20000" />
+		<float key="multiplicity" value="2246.0" />
+		<float key="po_name" value="1.0" />
+		<event>
+			<int key="identity:id" value="0" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_SUBMITTED" />
+			<date key="time:timestamp" value="2011-10-01T00:38:44.546000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="1" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="1" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PARTLYSUBMITTED" />
+			<date key="time:timestamp" value="2011-10-01T00:38:44.880000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="2" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="2" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PREACCEPTED" />
+			<date key="time:timestamp" value="2011-10-01T00:39:37.906000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="3" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="3" />
+			<string key="org:resource" value="10862" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_ACCEPTED" />
+			<date key="time:timestamp" value="2011-10-01T11:42:43.308000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="4" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="4" />
+			<string key="org:resource" value="10862" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_FINALIZED" />
+			<date key="time:timestamp" value="2011-10-01T11:45:09.243000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="5" />
+					<string key="1" value="6" />
+					<string key="2" value="7" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="5" />
+			<string key="org:resource" value="10629" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_REGISTERED" />
+			<date key="time:timestamp" value="2011-10-13T10:37:29.226000+00:00" />
+			<list key="po_successors">
+				<values>
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="6" />
+			<string key="org:resource" value="10629" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_APPROVED" />
+			<date key="time:timestamp" value="2011-10-13T10:37:29.226000+00:00" />
+			<list key="po_successors">
+				<values>
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="7" />
+			<string key="org:resource" value="10629" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_ACTIVATED" />
+			<date key="time:timestamp" value="2011-10-13T10:37:29.226000+00:00" />
+			<list key="po_successors">
+				<values>
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+	</trace>
+	<trace>
+		<date key="REG_DATE" value="2011-10-01T08:11:08.865000+00:00" />
+		<string key="concept:name" value="173697" />
+		<string key="AMOUNT_REQ" value="15000" />
+		<float key="multiplicity" value="5719.0" />
+		<float key="po_name" value="2.0" />
+		<event>
+			<int key="identity:id" value="24" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_SUBMITTED" />
+			<date key="time:timestamp" value="2011-10-01T08:11:08.866000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="25" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="25" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PARTLYSUBMITTED" />
+			<date key="time:timestamp" value="2011-10-01T08:11:09.035000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="26" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="26" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_DECLINED" />
+			<date key="time:timestamp" value="2011-10-01T08:11:46.420000+00:00" />
+			<list key="po_successors">
+				<values>
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+	</trace>
+	<trace>
+		<date key="REG_DATE" value="2011-10-01T09:45:25.806000+00:00" />
+		<string key="concept:name" value="173703" />
+		<string key="AMOUNT_REQ" value="13500" />
+		<float key="multiplicity" value="1100.0" />
+		<float key="po_name" value="3.0" />
+		<event>
+			<int key="identity:id" value="30" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_SUBMITTED" />
+			<date key="time:timestamp" value="2011-10-01T09:45:25.806000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="31" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="31" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PARTLYSUBMITTED" />
+			<date key="time:timestamp" value="2011-10-01T09:45:25.981000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="32" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="32" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PREACCEPTED" />
+			<date key="time:timestamp" value="2011-10-01T09:46:18.211000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="33" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="33" />
+			<string key="org:resource" value="10912" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_CANCELLED" />
+			<date key="time:timestamp" value="2011-10-01T13:02:11.068000+00:00" />
+			<list key="po_successors">
+				<values>
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+	</trace>
+	<trace>
+		<date key="REG_DATE" value="2011-10-01T09:45:37.274000+00:00" />
+		<string key="concept:name" value="173706" />
+		<string key="AMOUNT_REQ" value="18000" />
+		<float key="multiplicity" value="1085.0" />
+		<float key="po_name" value="4.0" />
+		<event>
+			<int key="identity:id" value="34" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_SUBMITTED" />
+			<date key="time:timestamp" value="2011-10-01T09:45:37.274000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="35" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="35" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PARTLYSUBMITTED" />
+			<date key="time:timestamp" value="2011-10-01T09:45:37.363000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="36" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="36" />
+			<string key="org:resource" value="10912" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PREACCEPTED" />
+			<date key="time:timestamp" value="2011-10-01T10:16:48.956000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="37" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="37" />
+			<string key="org:resource" value="11111" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_DECLINED" />
+			<date key="time:timestamp" value="2011-10-01T14:59:58.557000+00:00" />
+			<list key="po_successors">
+				<values>
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+	</trace>
+	<trace>
+		<date key="REG_DATE" value="2011-10-01T09:59:10.501000+00:00" />
+		<string key="concept:name" value="173715" />
+		<string key="AMOUNT_REQ" value="45000" />
+		<float key="multiplicity" value="802.0" />
+		<float key="po_name" value="5.0" />
+		<event>
+			<int key="identity:id" value="46" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_SUBMITTED" />
+			<date key="time:timestamp" value="2011-10-01T09:59:10.501000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="47" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="47" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PARTLYSUBMITTED" />
+			<date key="time:timestamp" value="2011-10-01T09:59:10.789000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="48" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="48" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PREACCEPTED" />
+			<date key="time:timestamp" value="2011-10-01T09:59:42.704000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="49" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="49" />
+			<string key="org:resource" value="10912" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_ACCEPTED" />
+			<date key="time:timestamp" value="2011-10-01T12:24:32.787000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="50" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="50" />
+			<string key="org:resource" value="10912" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_FINALIZED" />
+			<date key="time:timestamp" value="2011-10-01T12:30:20.556000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="51" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="51" />
+			<string key="org:resource" value="10138" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_DECLINED" />
+			<date key="time:timestamp" value="2011-10-13T11:05:24.620000+00:00" />
+			<list key="po_successors">
+				<values>
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+	</trace>
+	<trace>
+		<date key="REG_DATE" value="2011-10-01T14:08:16.293000+00:00" />
+		<string key="concept:name" value="173745" />
+		<string key="AMOUNT_REQ" value="2000" />
+		<float key="multiplicity" value="1640.0" />
+		<float key="po_name" value="6.0" />
+		<event>
+			<int key="identity:id" value="104" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_SUBMITTED" />
+			<date key="time:timestamp" value="2011-10-01T14:08:16.294000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="105" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="105" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PARTLYSUBMITTED" />
+			<date key="time:timestamp" value="2011-10-01T14:08:16.484000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="106" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="106" />
+			<string key="org:resource" value="10939" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PREACCEPTED" />
+			<date key="time:timestamp" value="2011-10-01T15:21:26.216000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="107" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="107" />
+			<string key="org:resource" value="11111" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_ACCEPTED" />
+			<date key="time:timestamp" value="2011-10-01T15:55:33.955000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="108" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="108" />
+			<string key="org:resource" value="11111" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_FINALIZED" />
+			<date key="time:timestamp" value="2011-10-01T15:58:41.856000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="109" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="109" />
+			<string key="org:resource" value="11000" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_CANCELLED" />
+			<date key="time:timestamp" value="2011-10-08T12:45:57.789000+00:00" />
+			<list key="po_successors">
+				<values>
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+	</trace>
+	<trace>
+		<date key="REG_DATE" value="2011-10-03T14:22:13.947000+00:00" />
+		<string key="concept:name" value="174102" />
+		<string key="AMOUNT_REQ" value="4000" />
+		<float key="multiplicity" value="29.0" />
+		<float key="po_name" value="7.0" />
+		<event>
+			<int key="identity:id" value="660" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_SUBMITTED" />
+			<date key="time:timestamp" value="2011-10-03T14:22:13.947000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="661" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="661" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PARTLYSUBMITTED" />
+			<date key="time:timestamp" value="2011-10-03T14:22:15.243000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="662" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="662" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PREACCEPTED" />
+			<date key="time:timestamp" value="2011-10-03T14:22:44.484000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="663" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="663" />
+			<string key="org:resource" value="11120" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_ACCEPTED" />
+			<date key="time:timestamp" value="2011-10-03T16:14:17.953000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="664" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="664" />
+			<string key="org:resource" value="11120" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_DECLINED" />
+			<date key="time:timestamp" value="2011-10-03T16:16:36.877000+00:00" />
+			<list key="po_successors">
+				<values>
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+	</trace>
+	<trace>
+		<date key="REG_DATE" value="2011-10-03T17:01:05.207000+00:00" />
+		<string key="concept:name" value="174147" />
+		<string key="AMOUNT_REQ" value="12500" />
+		<float key="multiplicity" value="66.0" />
+		<float key="po_name" value="8.0" />
+		<event>
+			<int key="identity:id" value="730" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_SUBMITTED" />
+			<date key="time:timestamp" value="2011-10-03T17:01:05.208000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="731" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="731" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PARTLYSUBMITTED" />
+			<date key="time:timestamp" value="2011-10-03T17:01:09.909000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="732" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="732" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PREACCEPTED" />
+			<date key="time:timestamp" value="2011-10-03T17:01:48.237000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="733" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="733" />
+			<string key="org:resource" value="11122" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_ACCEPTED" />
+			<date key="time:timestamp" value="2011-10-29T10:14:03.567000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="734" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="734" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_CANCELLED" />
+			<date key="time:timestamp" value="2011-11-03T09:15:08.789000+00:00" />
+			<list key="po_successors">
+				<values>
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+	</trace>
+	<trace>
+		<date key="REG_DATE" value="2011-12-13T21:29:24.105000+00:00" />
+		<string key="concept:name" value="193378" />
+		<string key="AMOUNT_REQ" value="0" />
+		<float key="multiplicity" value="1.0" />
+		<float key="po_name" value="9.0" />
+		<event>
+			<int key="identity:id" value="29440" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_SUBMITTED" />
+			<date key="time:timestamp" value="2011-12-13T21:29:24.106000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="29441" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="29441" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PARTLYSUBMITTED" />
+			<date key="time:timestamp" value="2011-12-13T21:29:24.670000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="29442" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="29442" />
+			<string key="org:resource" value="10779" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_CANCELLED" />
+			<date key="time:timestamp" value="2011-12-14T09:43:25.393000+00:00" />
+			<list key="po_successors">
+				<values>
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+	</trace>
+	<trace>
+		<date key="REG_DATE" value="2012-01-02T15:28:39.244000+00:00" />
+		<string key="concept:name" value="197219" />
+		<string key="AMOUNT_REQ" value="10000" />
+		<float key="multiplicity" value="327.0" />
+		<float key="po_name" value="10.0" />
+		<event>
+			<int key="identity:id" value="35343" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_SUBMITTED" />
+			<date key="time:timestamp" value="2012-01-02T15:28:39.244000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="35344" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="35344" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PARTLYSUBMITTED" />
+			<date key="time:timestamp" value="2012-01-02T15:28:39.416000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="35345" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="35345" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PREACCEPTED" />
+			<date key="time:timestamp" value="2012-01-02T15:29:09.496000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="35346" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="35346" />
+			<string key="org:resource" value="10982" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_ACCEPTED" />
+			<date key="time:timestamp" value="2012-01-03T18:12:38.327000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="35347" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="35347" />
+			<string key="org:resource" value="10982" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_FINALIZED" />
+			<date key="time:timestamp" value="2012-01-03T18:15:34.782000+00:00" />
+			<list key="po_successors">
+				<values>
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+	</trace>
+	<trace>
+		<date key="REG_DATE" value="2012-02-13T11:31:33.524000+00:00" />
+		<string key="concept:name" value="208748" />
+		<string key="AMOUNT_REQ" value="50000" />
+		<float key="multiplicity" value="69.0" />
+		<float key="po_name" value="11.0" />
+		<event>
+			<int key="identity:id" value="52750" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_SUBMITTED" />
+			<date key="time:timestamp" value="2012-02-13T11:31:33.525000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="52751" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="52751" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PARTLYSUBMITTED" />
+			<date key="time:timestamp" value="2012-02-13T11:31:33.805000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="52752" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="52752" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PREACCEPTED" />
+			<date key="time:timestamp" value="2012-02-13T11:32:15.385000+00:00" />
+			<list key="po_successors">
+				<values>
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+	</trace>
+	<trace>
+		<date key="REG_DATE" value="2012-02-17T18:22:46.252000+00:00" />
+		<string key="concept:name" value="210452" />
+		<string key="AMOUNT_REQ" value="7000" />
+		<float key="multiplicity" value="3.0" />
+		<float key="po_name" value="12.0" />
+		<event>
+			<int key="identity:id" value="55141" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_SUBMITTED" />
+			<date key="time:timestamp" value="2012-02-17T18:22:46.252000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="55142" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="55142" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PARTLYSUBMITTED" />
+			<date key="time:timestamp" value="2012-02-17T18:22:46.588000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="55143" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="55143" />
+			<string key="org:resource" value="112" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_PREACCEPTED" />
+			<date key="time:timestamp" value="2012-02-17T18:23:20.401000+00:00" />
+			<list key="po_successors">
+				<values>
+					<string key="0" value="55144" />
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+		<event>
+			<int key="identity:id" value="55144" />
+			<string key="org:resource" value="11122" />
+			<string key="lifecycle:transition" value="COMPLETE" />
+			<string key="concept:name" value="A_ACCEPTED" />
+			<date key="time:timestamp" value="2012-02-17T18:33:59.216000+00:00" />
+			<list key="po_successors">
+				<values>
+				</values>
+			</list>
+			<boolean key="is_part_of_po" value="true" />
+		</event>
+	</trace>
+</log>

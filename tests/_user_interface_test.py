@@ -87,6 +87,29 @@ class TestUserInterface(unittest.TestCase):
         self.verify_test_case_result(result_hf_heuristic_only, False, 0.9749138994004847, 0.9968429780177729,
                                      0.9858784387091288)
 
+    def test_conformance_checking_function_for_bpi_12_alog(self):
+        result_lf_precise = do_conformance_checking_for_partially_ordered_log(
+            "test_ressources/BPI12_alog_alpha_logwise_oneRperPoVar.xes", "test_ressources/bpi2012_alog_5.pnml"
+        )
+        self.verify_test_case_result(result_lf_precise, True, 0.9322202469013017, 0.9322202469013017,
+                                     0.9322202469013017)
+        result_lf_heuristic_only = do_conformance_checking_for_partially_ordered_log(
+            "test_ressources/BPI12_alog_alpha_logwise_oneRperPoVar.xes", "test_ressources/bpi2012_alog_5.pnml",
+            only_use_heuristics=True
+        )
+        self.verify_test_case_result(result_lf_heuristic_only, True, 00.9322202469013017, 0.9322202469013017,
+                                     0.9322202469013017)
+        result_hf_precise = do_conformance_checking_for_partially_ordered_log(
+            "test_ressources/BPI12_alog_alpha_logwise_oneRperPoVar.xes", "test_ressources/bpi2012_alog_10.pnml"
+        )
+        self.verify_test_case_result(result_hf_precise, True, 1, 1,
+                                     1)
+        result_hf_heuristic_only = do_conformance_checking_for_partially_ordered_log(
+            "test_ressources/BPI12_alog_alpha_logwise_oneRperPoVar.xes", "test_ressources/bpi2012_alog_10.pnml",
+            only_use_heuristics=True
+        )
+        self.verify_test_case_result(result_hf_heuristic_only, False, 0.9713794201975151, 1,
+                                     0.9856897100987576)
 
 if __name__ == '__main__':
     unittest.main()
