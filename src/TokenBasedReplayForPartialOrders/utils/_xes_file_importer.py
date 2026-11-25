@@ -156,7 +156,7 @@ def _process_case(case_id: Any,
             if not include_invalid:
                 return None, None, invalid_label
             transition_to_use = TransitionWorkflowNet(f"Invalid Event {row['identity:id']} from PO {case_id}",
-                                                      activity_desription= f"MISSING ACTIVITY({activity_name})")
+                                                      activity_desription= f"INVALID LABEL ({activity_name})")
         else:
             transition_to_use = name_to_transition[transition_name]
 

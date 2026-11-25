@@ -68,6 +68,19 @@ def get_leading_positional_params(fn, n=2):
 def pretty(name):
     return name.replace("_", " ").capitalize()
 
+def with_wrap(widget, *args, **kwargs):
+    """Call a Streamlit widget so that a long label breaks into several lines instead of being cut off."""
+    try:
+        return widget(*args, wrap=True, **kwargs)
+    except TypeError:  # older Streamlit versions do not have the wrap option (they wrap anyway)
+        return widget(*args, **kwargs)
+
+# Custom labels for the boolean inputs: {parameter name of the function: text shown in the app}
+CUSTOM_LABELS = {
+    "only_use_heuristics": "Use “Fast” algorithm (heuristics) to calculate fitness bounds only",
+    "include_runs_with_invalid_labels": "Include traces with activity labels that do not exist in the reference workflow net",
+    "add_initial_and_start_events": "Add initial and start events",
+}
 
 # ---------------------------------------------------------------------------
 # Native file dialog ("explorer view")
@@ -123,13 +136,8 @@ def path_input(label, key, placeholder, dialog_title, filetypes):
     with text_col:
         value = st.text_input(label, key=key, placeholder=placeholder)
     with button_col:
-        st.button(
-            "Browse...",
-            key=f"{key}_browse",
-            on_click=_browse_callback,
-            args=(key, dialog_title, filetypes),
-            use_container_width=True,
-        )
+        with_wrap(st.button, "Browse...", key=f"{key}_browse", on_click=_browse_callback,
+                  args=(key, dialog_title, filetypes), use_container_width=True)
     return value
 
 
@@ -155,6 +163,8 @@ def extract_conformance_values(result: PartiallyOrderedLogConformanceResult):
         "places_backward": result.number_places_decided_backward_heuristic,
         "places_flow": result.number_places_decided_flow_network,
         "places_estimated": result.number_places_only_estimated,
+        "number_non_conforming_runs" : result.get_number_of_non_conforming_runs(),
+        "number_all_runs" : result.get_number_of_runs_in_log(),
     }
 
 # ---------------------------------------------------------------------------
@@ -179,9 +189,9 @@ def net_to_dot(path: str, mtime: float) -> str:
 # Worst runs: table and visualization of a run
 # ---------------------------------------------------------------------------
 LEVEL_OPTIONS = {
-    "Lower bound": LevelType.LOWER_BOUND,
-    "Middle": LevelType.MIDDLE,
-    "Upper bound": LevelType.UPPER_BOUND,
+    "Minimum fitness value": LevelType.LOWER_BOUND,
+    "Average fitness value": LevelType.MIDDLE,
+    "Maximum fitness value": LevelType.UPPER_BOUND,
 }
 
 
@@ -190,12 +200,20 @@ def event_text(event) -> str:
     return str(event.label.activity_description)
 
 
-MISSING_ACTIVITY_PREFIX = "MISSING ACTIVITY"
+MISSING_ACTIVITY_PREFIX = "INVALID LABEL"
 
 
 def count_missing_activities(run) -> int:
     """Number of events of the run whose label text starts with MISSING ACTIVITY."""
     return sum(1 for event in run.partial_order if event_text(event).startswith(MISSING_ACTIVITY_PREFIX))
+
+
+def right_aligned(column_class, label, **kwargs):
+    """Column configuration with right-aligned cells (older Streamlit versions without that option: default)."""
+    try:
+        return column_class(label, alignment="right", **kwargs)
+    except TypeError:
+        return column_class(label, **kwargs)
 
 
 def format_range(minimum, maximum) -> str:
@@ -215,7 +233,7 @@ def build_run_figure(run):
     from matplotlib.backends.backend_agg import FigureCanvasAgg
     from matplotlib.figure import Figure
 
-    FONT_SIZE = 8
+    FONT_SIZE = 10
     WRAP_WIDTH = 24  # maximal number of characters per line of a label
     BOX_PADDING = 8.0  # extra space (points) around the text inside a box
     GAP_X = 70.0  # horizontal space (points) between two layers, room for the arrows
@@ -298,6 +316,21 @@ def build_run_figure(run):
 # UI
 # ---------------------------------------------------------------------------
 st.set_page_config(page_title="Token-Based Replay for Partial Orders", layout="wide")
+st.markdown(
+    """
+    <style>
+    [data-testid="stMetricLabel"], [data-testid="stMetricLabel"] *,
+    [data-testid="stMetricValue"], [data-testid="stMetricValue"] * {
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        overflow-wrap: break-word;
+    }
+    [data-testid="stWidgetLabel"] p { white-space: normal; overflow-wrap: break-word; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 st.title("Token-Replay-Based conformance norm for partially ordered logs")
 
 try:
@@ -315,15 +348,15 @@ except Exception as e:  # noqa: BLE001
 bool_params = get_bool_parameters(conformance_fn)
 leading = get_leading_positional_params(conformance_fn, 2)
 
-left, right = st.columns([1, 2], gap="large")
+left, right = st.columns([1, 3], gap="large")
 
 with left:
     st.subheader("Input")
 
-    log_path = path_input("Event log path (.xes)", key="log_path", placeholder="C:/data/log.xes",
+    log_path = path_input("Upload event log (.xes)", key="log_path", placeholder="C:/data/log.xes",
                           dialog_title="Select event log",
                           filetypes=[["XES event logs", "*.xes"], ["All files", "*.*"]])
-    net_path = path_input("Workflow net path (.pnml)", key="net_path", placeholder="C:/data/net.pnml",
+    net_path = path_input("Upload reference workflow net (.pnml)", key="net_path", placeholder="C:/data/net.pnml",
                           dialog_title="Select workflow net",
                           filetypes=[["PNML Petri nets", "*.pnml"], ["All files", "*.*"]])
     if st.session_state.get("browse_error"):
@@ -331,7 +364,7 @@ with left:
 
     bool_values = {}
     for name, default in bool_params:
-        bool_values[name] = st.checkbox(pretty(name), value=default, key=f"bool_{name}")
+        bool_values[name] = with_wrap(st.checkbox, CUSTOM_LABELS.get(name, pretty(name)), value=default, key=f"bool_{name}")
 
     calculate = st.button("Calculate", type="primary", use_container_width=True)
 
@@ -365,7 +398,7 @@ with left:
                 st.session_state["result_error"] = traceback.format_exc()
 
 with right:
-    st.subheader("Workflow net")
+    st.subheader("Reference workflow net")
 
     net_file = net_path.strip()
     if not net_file:
@@ -382,7 +415,7 @@ with right:
             st.error(f"Error while reading or visualizing the workflow net: {e}")
 
 # ----- second row: result, below both the input menu and the net -----
-result_left, result_right = st.columns([1, 2], gap="large")
+result_left, result_right = st.columns([1, 3], gap="large")
 
 with result_left:
     res = st.session_state.get("result")
@@ -396,10 +429,12 @@ with result_left:
         st.subheader("Result")
         digits = st.number_input("Decimal digits", min_value=0, max_value=10, value=4, step=1, key="decimal_digits")
         if res["is_precise"]:
-            st.metric("Conformance level", f"{res['level']:.{digits}f}")
+            st.metric("Fitness value", f"{res['level']:.{digits}f}")
         else:
-            st.metric("Conformance level (bounds)", f"{res['lower']:.{digits}f} - {res['upper']:.{digits}f}")
-            st.metric("Estimated conformance level", f"{res['level']:.{digits}f}")
+            st.metric("Minimum fitness value", f"{res['lower']:.{digits}f}")
+            st.metric("Maximum fitness value", f"{res['upper']:.{digits}f}")
+            st.metric("Average", f"{res['level']:.{digits}f}")
+        st.metric("Number of non-conforming traces: ", f"{res['number_non_conforming_runs']} / {res['number_all_runs']}")
 
         # ----- token information -----
         st.markdown("&nbsp;")
@@ -422,9 +457,9 @@ with result_left:
             f"**Places decided by forward heuristic:** {res['places_forward']}",
             f"**Places decided by backward heuristic:** {res['places_backward']}",
         ]
-        if res["places_flow"] != 0:
+        if not bool_values["only_use_heuristics"]:
             place_lines.append(f"**Places decided by flow algorithm:** {res['places_flow']}")
-        if res["places_estimated"] != 0:
+        else:
             place_lines.append(f"**Places only estimated:** {res['places_estimated']}")
         st.markdown("  \n".join(place_lines))
 
@@ -432,14 +467,14 @@ with result_right:
     result_object = st.session_state.get("result_object")
     current_result = st.session_state.get("result")
     if current_result and result_object is not None:
-        st.subheader("Worst runs")
+        st.subheader("Most non-conforming traces")
 
         control_left, control_right = st.columns(2)
         if current_result["is_precise"]:
             level_type = LevelType.MIDDLE  # lower bound = upper bound, so the choice would make no difference
         else:
             with control_right:
-                level_name = st.selectbox("Rank runs by", list(LEVEL_OPTIONS), key="worst_runs_level")
+                level_name = st.selectbox("Rank traces by", list(LEVEL_OPTIONS), key="worst_runs_level")
             level_type = LEVEL_OPTIONS[level_name]
 
         # All runs that are not perfect, worst first. Its length is the maximal number of runs one can select.
@@ -459,42 +494,48 @@ with result_right:
                 st.session_state["worst_runs_count"] = maximal_number_runs
             with control_left:
                 number_runs = st.number_input(
-                    "Number of runs", min_value=1, max_value=maximal_number_runs, step=1, key="worst_runs_count",
-                    help=f"At most {maximal_number_runs}: the number of runs with a conformance level below 1.")
+                    "Include max. number of non-conforming traces in list", min_value=1, max_value=maximal_number_runs, step=1, key="worst_runs_count",
+                    help=f"At most {maximal_number_runs}: the number of runs with a fitness value below 1.")
             worst_runs = all_worst_runs[:int(number_runs)]
         elif all_worst_runs is not None:
             worst_runs = []
 
         if worst_runs is not None:
             if not worst_runs:
-                st.info("There are no runs with a conformance level below 1.")
+                st.info("There are no runs with a fitness value below 1.")
             else:
+                plot_area = st.container()  # reserved above the table, filled below once the selected row is known
                 digits_runs = st.session_state.get("decimal_digits", 4)
                 rows = []
                 for rank, entry in enumerate(worst_runs, start=1):
                     run_result = entry.conformance_result
                     row = {
                         "Rank": rank,
-                        "Run": entry.run.name_foreign_source,
+                        "Trace ID": entry.run.name_foreign_source,
                         "Events": len(entry.run.partial_order),
-                        "Missing activities": count_missing_activities(entry.run),
+                        "Invalid activity labels": count_missing_activities(entry.run),
                     }
                     if current_result["is_precise"]:
-                        row["Conformance level"] = run_result.conformance_level_min
+                        row["Fitness value"] = run_result.conformance_level_min
                     else:
-                        row["Lower bound"] = run_result.conformance_level_min
-                        row["Upper bound"] = run_result.conformance_level_max
+                        row["Minimum fitness value"] = run_result.conformance_level_min
+                        row["Average fitness value"] = run_result.conformance_level
+                        row["Maximum fitness value"] = run_result.conformance_level_max
                     row["Missing tokens"] = format_range(run_result.missing_token_min, run_result.missing_token_max)
                     row["Remaining tokens"] = format_range(run_result.remaining_token_min, run_result.remaining_token_max)
                     rows.append(row)
 
+                runs_table = pd.DataFrame(rows)
                 number_format = f"%.{digits_runs}f"
+                formatted_columns = ("Fitness value", "Lower bound", "Upper bound")
                 column_config = {
-                    name: st.column_config.NumberColumn(name, format=number_format)
-                    for name in ("Conformance level", "Lower bound", "Upper bound")
+                    name: (right_aligned(st.column_config.NumberColumn, name, format=number_format)
+                           if name in formatted_columns
+                           else right_aligned(st.column_config.Column, name))
+                    for name in runs_table.columns
                 }
                 table_event = st.dataframe(
-                    pd.DataFrame(rows),
+                    runs_table,
                     hide_index=True,
                     use_container_width=True,
                     column_config=column_config,
@@ -508,9 +549,10 @@ with result_right:
                     selected = 0
 
                 selected_run = worst_runs[selected].run
-                st.caption(f"Run {selected + 1}: {selected_run.name_foreign_source} "
-                           f"({len(selected_run.partial_order)} events). Click a row of the table to show another run.")
-                try:
-                    st.pyplot(build_run_figure(selected_run), use_container_width=True)
-                except Exception as e:  # noqa: BLE001
-                    st.error(f"Error while visualizing the run: {e}")
+                with plot_area:
+                    st.caption(f"Trace {selected + 1}: {selected_run.name_foreign_source} "
+                               f"({len(selected_run.partial_order)} events). Select a row in the table below to show another trace.")
+                    try:
+                        st.pyplot(build_run_figure(selected_run), use_container_width=True)
+                    except Exception as e:  # noqa: BLE001
+                        st.error(f"Error while visualizing the run: {e}")
