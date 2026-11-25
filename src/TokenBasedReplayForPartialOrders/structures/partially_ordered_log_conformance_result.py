@@ -135,7 +135,7 @@ class PartiallyOrderedLogConformanceResult:
         self.remaining_tokens_min = 0
         self.produced_tokens = 0
 
-    def _fill_from_calculation_result(self, weighted_sums: TokenResultsWeightedSum, run_to_conformance_result: dict[Run, RunConformanceResult]):
+    def fill_from_calculation_result(self, weighted_sums: TokenResultsWeightedSum, run_to_conformance_result: dict[Run, RunConformanceResult]):
         def calculate_conformance_level(produced: int, consumed: int, missing: int, remaining: int) -> float:
             first_term: float = 1 - (missing / consumed)
             second_term: float = 1 - (remaining / produced)

@@ -21,6 +21,7 @@ import streamlit as st
 from src.TokenBasedReplayForPartialOrders.structures.partially_ordered_log_conformance_result import (
     LevelType,
     PartiallyOrderedLogConformanceResult,
+    PersistationType,
 )
 from src.TokenBasedReplayForPartialOrders.user_interface import do_conformance_checking_for_partially_ordered_log as conf_alg_fn
 
@@ -92,27 +93,35 @@ _DIALOG_SCRIPT = """
 import json, sys
 import tkinter as tk
 from tkinter import filedialog
-title, filetypes, initialdir = json.loads(sys.argv[1])
+title, filetypes, initialdir, save = json.loads(sys.argv[1])
 root = tk.Tk()
 root.withdraw()
 root.attributes("-topmost", True)
-path = filedialog.askopenfilename(
-    title=title,
-    filetypes=[tuple(ft) for ft in filetypes],
-    initialdir=initialdir or None,
-)
+if save:
+    path = filedialog.asksaveasfilename(
+        title=title,
+        filetypes=[tuple(ft) for ft in filetypes],
+        initialdir=initialdir or None,
+        defaultextension=filetypes[0][1].replace("*", ""),
+    )
+else:
+    path = filedialog.askopenfilename(
+        title=title,
+        filetypes=[tuple(ft) for ft in filetypes],
+        initialdir=initialdir or None,
+    )
 root.destroy()
 print(path)
 """
 
 
-def _browse_callback(key, title, filetypes):
+def _browse_callback(key, title, filetypes, save=False):
     """Button callback: open the file dialog and store the chosen path."""
     current = st.session_state.get(key, "").strip()
     initialdir = os.path.dirname(current) if current and os.path.exists(os.path.dirname(current)) else ""
     try:
         proc = subprocess.run(
-            [sys.executable, "-c", _DIALOG_SCRIPT, json.dumps([title, filetypes, initialdir])],
+            [sys.executable, "-c", _DIALOG_SCRIPT, json.dumps([title, filetypes, initialdir, save])],
             capture_output=True,
             text=True,
             timeout=600,
@@ -130,15 +139,22 @@ def _browse_callback(key, title, filetypes):
         )
 
 
-def path_input(label, key, placeholder, dialog_title, filetypes):
-    """Text field for a path with a 'Browse...' button that opens an explorer."""
+def path_input(label, key, placeholder, dialog_title, filetypes, save=False):
+    """Text field for a path with a 'Browse...' button that opens an explorer (save=True: "save as" dialog)."""
     text_col, button_col = st.columns([5, 2], vertical_alignment="bottom")
     with text_col:
         value = st.text_input(label, key=key, placeholder=placeholder)
     with button_col:
         with_wrap(st.button, "Browse...", key=f"{key}_browse", on_click=_browse_callback,
-                  args=(key, dialog_title, filetypes), use_container_width=True)
+                  args=(key, dialog_title, filetypes, save), use_container_width=True)
     return value
+
+
+# Formats for saving the result: {name shown in the app: (PersistationType, file extension, file dialog filter)}
+SAVE_FORMATS = {
+    "CSV": (PersistationType.CSV, ".csv", [["CSV files", "*.csv"], ["All files", "*.*"]]),
+    "XML": (PersistationType.XML, ".xml", [["XML files", "*.xml"], ["All files", "*.*"]]),
+}
 
 
 # ---------------------------------------------------------------------------
@@ -427,6 +443,26 @@ with result_left:
             st.code(error_details)
     elif res:
         st.subheader("Result")
+
+        with st.expander("Save result"):
+            save_format = st.selectbox("File format", list(SAVE_FORMATS), key="save_format")
+            save_type, save_extension, save_filetypes = SAVE_FORMATS[save_format]
+            save_path = path_input("Save to (file path)", key="save_path",
+                                   placeholder="C:/results/result" + save_extension,
+                                   dialog_title="Save result as", filetypes=save_filetypes, save=True)
+            if st.button("Save", key="save_button", use_container_width=True):
+                target_path = save_path.strip()
+                if not target_path:
+                    st.error("Please enter the path of the file.")
+                else:
+                    if os.path.splitext(target_path)[1] == "":
+                        target_path += save_extension  # no file extension given: add the one of the chosen format
+                    try:
+                        st.session_state["result_object"].persist_result(target_path, save_type)
+                        st.success(f"Result saved to {target_path}")
+                    except Exception as e:  # noqa: BLE001
+                        st.error(f"Error while saving the result: {e}")
+
         digits = st.number_input("Decimal digits", min_value=0, max_value=10, value=4, step=1, key="decimal_digits")
         if res["is_precise"]:
             st.metric("Fitness value", f"{res['level']:.{digits}f}")
@@ -527,7 +563,7 @@ with result_right:
 
                 runs_table = pd.DataFrame(rows)
                 number_format = f"%.{digits_runs}f"
-                formatted_columns = ("Fitness value", "Lower bound", "Upper bound")
+                formatted_columns = ("Fitness value", "Minimum fitness value", "Average fitness value", "Maximum fitness value")
                 column_config = {
                     name: (right_aligned(st.column_config.NumberColumn, name, format=number_format)
                            if name in formatted_columns
