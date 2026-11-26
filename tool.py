@@ -150,13 +150,46 @@ def path_input(label, key, placeholder, dialog_title, filetypes, save=False):
     return value
 
 
+
 # Formats for saving the result: {name shown in the app: (PersistationType, file extension, file dialog filter)}
 SAVE_FORMATS = {
     "CSV": (PersistationType.CSV, ".csv", [["CSV files", "*.csv"], ["All files", "*.*"]]),
     "XML": (PersistationType.XML, ".xml", [["XML files", "*.xml"], ["All files", "*.*"]]),
 }
 
+# Explanation of the saved files, shown in the help box of the "Save result" section (Markdown).
+SAVE_HELP = {
+    "CSV": """
+**One table, one line per result**
+- The **first line** is the total result for the whole log: ID `Total`, column "Total result" = `True`.
+- Then follows **one line per trace**: ID = trace ID, column "Total result" = `False`.
 
+**Columns**
+- ID, Total result
+- Minimum / Average / Maximum fitness value (for a precise result all three are equal; the average of a trace is the mean of its minimum and maximum)
+- Produced tokens, Consumed tokens
+- Missing tokens (max / min), Remaining tokens (max / min)
+- Places decided with forward heuristic, with backward heuristic
+- Places decided with other method: the larger of the places decided by the flow algorithm and the places only estimated
+
+The file is UTF-8 encoded and comma-separated, with a decimal point. Values are saved with full precision, independent of the decimal digits shown in the app.
+""",
+    "XML": """
+**Nested structure**
+- The root element `PartiallyOrderedLogConformanceResult` contains the element `TotalResult` (attribute `isPreciseResult`) with the result for the whole log.
+- Nested below it, `RunResults` contains one `RunResult` element per trace (attribute `id` = trace ID).
+
+**Content of `TotalResult` and of every `RunResult`**
+- `minimumFitnessValue`, `averageFitnessValue`, `maximumFitnessValue` (for a precise result all three are equal; the average of a trace is the mean of its minimum and maximum)
+- `producedTokens`, `consumedTokens`
+- `missingTokensMax`, `missingTokensMin`, `remainingTokensMax`, `remainingTokensMin`
+- `placesDecidedForwardHeuristic`, `placesDecidedBackwardHeuristic`
+- `placesDecidedOtherMethod`: places decided by the flow algorithm if its usage was activated in the parameter; otherwise the places only estimated, 
+
+The file is UTF-8 encoded. Values are saved with full precision, independent of the decimal digits shown in the app.
+""",
+
+}
 # ---------------------------------------------------------------------------
 # Result handling
 # ---------------------------------------------------------------------------
@@ -206,7 +239,6 @@ def net_to_dot(path: str, mtime: float) -> str:
 # ---------------------------------------------------------------------------
 LEVEL_OPTIONS = {
     "Minimum fitness value": LevelType.LOWER_BOUND,
-    "Average fitness value": LevelType.MIDDLE,
     "Maximum fitness value": LevelType.UPPER_BOUND,
 }
 
@@ -447,6 +479,8 @@ with result_left:
         with st.expander("Save result"):
             save_format = st.selectbox("File format", list(SAVE_FORMATS), key="save_format")
             save_type, save_extension, save_filetypes = SAVE_FORMATS[save_format]
+            with st.popover("What does the saved file contain?", use_container_width=True):
+                st.markdown(SAVE_HELP[save_format])
             save_path = path_input("Save to (file path)", key="save_path",
                                    placeholder="C:/results/result" + save_extension,
                                    dialog_title="Save result as", filetypes=save_filetypes, save=True)
@@ -469,7 +503,6 @@ with result_left:
         else:
             st.metric("Minimum fitness value", f"{res['lower']:.{digits}f}")
             st.metric("Maximum fitness value", f"{res['upper']:.{digits}f}")
-            st.metric("Average", f"{res['level']:.{digits}f}")
         st.metric("Number of non-conforming traces: ", f"{res['number_non_conforming_runs']} / {res['number_all_runs']}")
 
         # ----- token information -----
@@ -555,7 +588,6 @@ with result_right:
                         row["Fitness value"] = run_result.conformance_level_min
                     else:
                         row["Minimum fitness value"] = run_result.conformance_level_min
-                        row["Average fitness value"] = run_result.conformance_level
                         row["Maximum fitness value"] = run_result.conformance_level_max
                     row["Missing tokens"] = format_range(run_result.missing_token_min, run_result.missing_token_max)
                     row["Remaining tokens"] = format_range(run_result.remaining_token_min, run_result.remaining_token_max)

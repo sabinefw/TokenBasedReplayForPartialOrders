@@ -7,10 +7,9 @@ from src.TokenBasedReplayForPartialOrders.utils._xes_file_importer import import
 def do_conformance_checking_for_partially_ordered_log(
         event_log_file_path: str,
         net_file_path: str,
-        include_runs_with_invalid_labels: bool = True,
         only_use_heuristics: bool = False,
-        add_initial_and_start_events: bool = True,
-) -> PartiallyOrderedLogConformanceResult:
+        include_runs_with_invalid_labels: bool = True,
+        add_initial_and_start_events: bool = True) -> PartiallyOrderedLogConformanceResult:
     """
     TODO
     Args:

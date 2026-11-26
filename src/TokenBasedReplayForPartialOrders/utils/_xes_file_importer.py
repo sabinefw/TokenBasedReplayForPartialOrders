@@ -132,7 +132,7 @@ def _process_case(case_id: Any,
                   include_invalid: bool,
                   event_id_to_successors: dict[int, list[int]] = None,
                   add_start_and_end_events=True) \
-        -> tuple[None, None, Any] | tuple[Run, dict[Any, bool], Any | None]:
+        -> tuple[None, dict, Any] | tuple[Run, dict[Any, bool], Any | None]:
     """
     Processes a single case and constructs a run.
 
@@ -154,7 +154,7 @@ def _process_case(case_id: Any,
         if transition_name not in name_to_transition:
             invalid_label = transition_name
             if not include_invalid:
-                return None, None, invalid_label
+                return None, {}, invalid_label
             transition_to_use = TransitionWorkflowNet(f"Invalid Event {row['identity:id']} from PO {case_id}",
                                                       activity_desription= f"INVALID LABEL ({activity_name})")
         else:
