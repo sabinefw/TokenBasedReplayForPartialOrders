@@ -9,11 +9,11 @@ Run with:   streamlit run tool.py
 """
 
 import inspect
-import json
+import logging
 import os
-import subprocess
 import sys
-import traceback
+import tempfile
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
@@ -40,6 +40,12 @@ for p in (REPO_SRC, os.path.dirname(REPO_SRC)):
         sys.path.insert(0, p)
 
 FUNCTION_NAME = "do_conformance_checking_for_partially_ordered_log"
+LOGGER = logging.getLogger(__name__)
+
+# The XES limit mirrors .streamlit/config.toml. The PNML limit is intentionally
+# much smaller because workflow nets do not require large uploads.
+MAX_LOG_UPLOAD_SIZE_MB = 1024
+MAX_NET_UPLOAD_SIZE_MB = 1
 
 
 # ---------------------------------------------------------------------------
@@ -78,83 +84,32 @@ def with_wrap(widget, *args, **kwargs):
 
 # Custom labels for the boolean inputs: {parameter name of the function: text shown in the app}
 CUSTOM_LABELS = {
-    "only_use_heuristics": "Use “Fast” algorithm (heuristics) to calculate fitness bounds only",
-    "include_runs_with_invalid_labels": "Include traces with activity labels that do not exist in the reference workflow net",
-    "add_initial_and_start_events": "Add initial and start events",
+    "only_use_heuristics": "Use \"Fast\" Algorithm (bounds only)",
+    "include_runs_with_invalid_labels": "Include traces with invalid labels",
+    "add_initial_and_start_events": "Add start and end events",
 }
 
 # ---------------------------------------------------------------------------
-# Native file dialog ("explorer view")
+# Browser uploads and downloads
 # ---------------------------------------------------------------------------
-# The dialog is opened in a separate Python process, because tkinter does not
-# work reliably inside Streamlit's script threads. This only works when the app
-# runs on your own computer (the dialog appears on the machine running Streamlit).
-_DIALOG_SCRIPT = """
-import json, sys
-import tkinter as tk
-from tkinter import filedialog
-title, filetypes, initialdir, save = json.loads(sys.argv[1])
-root = tk.Tk()
-root.withdraw()
-root.attributes("-topmost", True)
-if save:
-    path = filedialog.asksaveasfilename(
-        title=title,
-        filetypes=[tuple(ft) for ft in filetypes],
-        initialdir=initialdir or None,
-        defaultextension=filetypes[0][1].replace("*", ""),
-    )
-else:
-    path = filedialog.askopenfilename(
-        title=title,
-        filetypes=[tuple(ft) for ft in filetypes],
-        initialdir=initialdir or None,
-    )
-root.destroy()
-print(path)
-"""
+def clear_results():
+    """Discard the previous result when either uploaded input file changes."""
+    for key in ("result", "result_error", "result_object"):
+        st.session_state.pop(key, None)
 
 
-def _browse_callback(key, title, filetypes, save=False):
-    """Button callback: open the file dialog and store the chosen path."""
-    current = st.session_state.get(key, "").strip()
-    initialdir = os.path.dirname(current) if current and os.path.exists(os.path.dirname(current)) else ""
-    try:
-        proc = subprocess.run(
-            [sys.executable, "-c", _DIALOG_SCRIPT, json.dumps([title, filetypes, initialdir, save])],
-            capture_output=True,
-            text=True,
-            timeout=600,
-        )
-        if proc.returncode != 0:
-            raise RuntimeError(proc.stderr.strip() or "File dialog failed.")
-        chosen = proc.stdout.strip()
-        if chosen:  # empty string = dialog cancelled
-            st.session_state[key] = chosen
-        st.session_state.pop("browse_error", None)
-    except Exception as e:  # noqa: BLE001
-        st.session_state["browse_error"] = (
-            f"Could not open a file dialog ({e}). You can still type or paste the path. "
-            "On Linux you may need to install tkinter (e.g. `sudo apt install python3-tk`)."
-        )
+def store_uploaded_file(upload, directory: str, filename: str) -> str:
+    """Write an upload under a server-controlled name and return its path."""
+    destination = Path(directory, filename)
+    with destination.open("wb") as target:
+        target.write(upload.getbuffer())
+    return str(destination)
 
 
-def path_input(label, key, placeholder, dialog_title, filetypes, save=False):
-    """Text field for a path with a 'Browse...' button that opens an explorer (save=True: "save as" dialog)."""
-    text_col, button_col = st.columns([5, 2], vertical_alignment="bottom")
-    with text_col:
-        value = st.text_input(label, key=key, placeholder=placeholder)
-    with button_col:
-        with_wrap(st.button, "Browse...", key=f"{key}_browse", on_click=_browse_callback,
-                  args=(key, dialog_title, filetypes, save), use_container_width=True)
-    return value
-
-
-
-# Formats for saving the result: {name shown in the app: (PersistationType, file extension, file dialog filter)}
+# Formats for downloading the result: {name shown in the app: (PersistationType, file extension, MIME type)}
 SAVE_FORMATS = {
-    "CSV": (PersistationType.CSV, ".csv", [["CSV files", "*.csv"], ["All files", "*.*"]]),
-    "XML": (PersistationType.XML, ".xml", [["XML files", "*.xml"], ["All files", "*.*"]]),
+    "CSV": (PersistationType.CSV, ".csv", "text/csv"),
+    "XML": (PersistationType.XML, ".xml", "application/xml"),
 }
 
 # Explanation of the saved files, shown in the help box of the "Save result" section (Markdown).
@@ -193,6 +148,19 @@ The file is UTF-8 encoded. Values are saved with full precision, independent of 
 # ---------------------------------------------------------------------------
 # Result handling
 # ---------------------------------------------------------------------------
+def result_as_bytes(result: PartiallyOrderedLogConformanceResult, persist_type: PersistationType,
+                    extension: str) -> bytes:
+    """Persist a result briefly, then return it for a browser download."""
+    descriptor, filename = tempfile.mkstemp(suffix=extension, prefix="po-track-result-")
+    os.close(descriptor)
+    path = Path(filename)
+    try:
+        result.persist_result(str(path), persist_type)
+        return path.read_bytes()
+    finally:
+        path.unlink(missing_ok=True)
+
+
 def extract_conformance_values(result: PartiallyOrderedLogConformanceResult):
     if result is None:
         raise ValueError("None is not a valid input.")
@@ -219,12 +187,10 @@ def extract_conformance_values(result: PartiallyOrderedLogConformanceResult):
 # ---------------------------------------------------------------------------
 # Workflow net visualization (pm4py)
 # ---------------------------------------------------------------------------
-@st.cache_data(show_spinner=False)
-def net_to_dot(path: str, mtime: float) -> str:
+def net_to_dot(path: str) -> str:
     """
     Read a PNML file with pm4py and return the Graphviz DOT source of its
-    visualization. `mtime` is only part of the cache key, so the picture is
-    recomputed if the file changes on disk.
+    visualization.
     """
     import pm4py
     from pm4py.visualization.petri_net import visualizer as pn_visualizer
@@ -375,22 +341,43 @@ st.markdown(
         overflow-wrap: break-word;
     }
     [data-testid="stWidgetLabel"] p { white-space: normal; overflow-wrap: break-word; }
+    [data-testid="stMainBlockContainer"] { padding-top: 0.25rem !important; }
+    [data-testid="stMetricLabel"],
+    [data-testid="stMetricLabel"] * {
+        font-size: 1rem !important;
+    }
+    /* Keep both upload controls compact and the same height before and after an upload. */
+    [data-testid="stFileUploaderDropzone"] {
+        height: 3rem !important;
+        min-height: 3rem !important;
+        padding: 0.25rem 0.5rem !important;
+    }
+    [data-testid="stFileUploaderDropzoneInstructions"] { display: none !important; }
+    [data-testid="stFileUploaderFile"] {
+        min-height: 3rem !important;
+        margin: 0 !important;
+        padding: 0.25rem 0.5rem !important;
+        border-radius: 0.5rem;
+        background: rgba(151, 166, 195, 0.15);
+    }
+    /* Once a file is present, its native file row replaces the upload box. */
+    [data-testid="stFileUploader"]:has([data-testid="stFileUploaderFile"])
+        [data-testid="stFileUploaderDropzone"] { display: none !important; }
+    [data-testid="stFileUploader"]:has([data-testid="stFileUploaderFile"])
+        section + div { margin-top: 0 !important; }
+    [data-testid="stFileUploader"]:has([data-testid="stFileUploaderFile"])
+        [data-testid="stFileUploaderFile"] { box-sizing: border-box; }
     </style>
     """,
     unsafe_allow_html=True,
 )
-st.title("Token-Replay-Based conformance norm for partially ordered logs")
+st.title("Token-based Replay Fitness for Partially Ordered Event Logs")
 
 try:
     conformance_fn = load_function()
-except Exception as e:  # noqa: BLE001
-    st.error(
-        f"Could not import `{FUNCTION_NAME}` from `user_interface`.\n\n"
-        f"Looked in: `{REPO_SRC}`\n\n"
-        "Clone the repository next to this file, or set the environment variable "
-        "`TBR_SRC` to the folder containing `user_interface.py`."
-    )
-    st.exception(e)
+except Exception:  # noqa: BLE001
+    LOGGER.exception("Application initialization failed")
+    st.error("The application could not be initialized. Please try again later.")
     st.stop()
 
 bool_params = get_bool_parameters(conformance_fn)
@@ -401,14 +388,14 @@ left, right = st.columns([1, 3], gap="large")
 with left:
     st.subheader("Input")
 
-    log_path = path_input("Upload event log (.xes)", key="log_path", placeholder="C:/data/log.xes",
-                          dialog_title="Select event log",
-                          filetypes=[["XES event logs", "*.xes"], ["All files", "*.*"]])
-    net_path = path_input("Upload reference workflow net (.pnml)", key="net_path", placeholder="C:/data/net.pnml",
-                          dialog_title="Select workflow net",
-                          filetypes=[["PNML Petri nets", "*.pnml"], ["All files", "*.*"]])
-    if st.session_state.get("browse_error"):
-        st.warning(st.session_state["browse_error"])
+    net_upload = st.file_uploader(
+        "Upload workflow net (.pnml)", type=["pnml"], key="net_upload",
+        max_upload_size=MAX_NET_UPLOAD_SIZE_MB, on_change=clear_results,
+    )
+    log_upload = st.file_uploader(
+        "Upload event log (.xes)", type=["xes"], key="log_upload",
+        max_upload_size=MAX_LOG_UPLOAD_SIZE_MB, on_change=clear_results,
+    )
 
     bool_values = {}
     for name, default in bool_params:
@@ -419,14 +406,10 @@ with left:
     # ----- results, directly below the input menu on the left -----
     if calculate:
         errors = []
-        if not log_path.strip():
-            errors.append("Please enter the path of the event log.")
-        elif not os.path.isfile(log_path.strip()):
-            errors.append(f"Event log file not found: {log_path}")
-        if not net_path.strip():
-            errors.append("Please enter the path of the workflow net.")
-        elif not os.path.isfile(net_path.strip()):
-            errors.append(f"Workflow net file not found: {net_path}")
+        if log_upload is None:
+            errors.append("Please upload an event log in XES format.")
+        if net_upload is None:
+            errors.append("Please upload a reference workflow net in PNML format.")
 
         if errors:
             for msg in errors:
@@ -437,73 +420,80 @@ with left:
             st.session_state.pop("result_object", None)
             try:
                 with st.spinner("Calculating conformance..."):
-                    result = conformance_fn(
-                        log_path.strip(), net_path.strip(), **bool_values
-                    )
+                    with tempfile.TemporaryDirectory(prefix="po-track-upload-") as upload_dir:
+                        log_path = store_uploaded_file(log_upload, upload_dir, "event-log.xes")
+                        net_path = store_uploaded_file(net_upload, upload_dir, "workflow-net.pnml")
+                        result = conformance_fn(log_path, net_path, **bool_values)
                 st.session_state["result"] = extract_conformance_values(result)
                 st.session_state["result_object"] = result
             except Exception:  # noqa: BLE001
-                st.session_state["result_error"] = traceback.format_exc()
+                LOGGER.exception("Conformance calculation failed")
+                st.session_state["result_error"] = (
+                    "The calculation could not be completed. Please verify that the uploaded "
+                    "files are valid and compatible."
+                )
+
+    # Filled below after the calculation result is available. Keeping this
+    # container in the left column decouples it from the trace list on the right.
+    result_container = st.container()
 
 with right:
     st.subheader("Reference workflow net")
 
-    net_file = net_path.strip()
-    if not net_file:
-        st.info("Select a workflow net (.pnml) to see its visualization here.")
-    elif not net_file.lower().endswith(".pnml"):
-        st.error("Input file for Workflow net is not a pnml-file.")
-    elif not os.path.isfile(net_file):
-        st.error(f"Workflow net file not found: {net_file}")
+    if net_upload is None:
+        st.info("Upload a workflow net (.pnml) to see its visualization here.")
     else:
         try:
-            dot_source = net_to_dot(net_file, os.path.getmtime(net_file))
+            with tempfile.TemporaryDirectory(prefix="po-track-net-") as net_dir:
+                net_file = store_uploaded_file(net_upload, net_dir, "workflow-net.pnml")
+                dot_source = net_to_dot(net_file)
             st.graphviz_chart(dot_source, use_container_width=True)
-        except Exception as e:  # noqa: BLE001
-            st.error(f"Error while reading or visualizing the workflow net: {e}")
+        except Exception:  # noqa: BLE001
+            LOGGER.exception("Workflow-net visualization failed")
+            st.error("The uploaded workflow net could not be read or visualized.")
 
-# ----- second row: result, below both the input menu and the net -----
-result_left, result_right = st.columns([1, 3], gap="large")
+    if net_upload is not None:
+        st.markdown("<div style='height: 1cm'></div>", unsafe_allow_html=True)
 
-with result_left:
+    # Filled below after the calculation result is available. Keeping this
+    # container here decouples the right column from the height of the result.
+    nonconforming_container = st.container()
+
+with result_container:
     res = st.session_state.get("result")
     error_details = st.session_state.get("result_error")
     if error_details:
         st.subheader("Result")
-        st.error("Error during calculation")
-        with st.expander("Error details"):
-            st.code(error_details)
+        st.error(error_details)
     elif res:
         st.subheader("Result")
 
-        with st.expander("Save result"):
-            save_format = st.selectbox("File format", list(SAVE_FORMATS), key="save_format")
-            save_type, save_extension, save_filetypes = SAVE_FORMATS[save_format]
-            with st.popover("What does the saved file contain?", use_container_width=True):
-                st.markdown(SAVE_HELP[save_format])
-            save_path = path_input("Save to (file path)", key="save_path",
-                                   placeholder="C:/results/result" + save_extension,
-                                   dialog_title="Save result as", filetypes=save_filetypes, save=True)
-            if st.button("Save", key="save_button", use_container_width=True):
-                target_path = save_path.strip()
-                if not target_path:
-                    st.error("Please enter the path of the file.")
-                else:
-                    if os.path.splitext(target_path)[1] == "":
-                        target_path += save_extension  # no file extension given: add the one of the chosen format
-                    try:
-                        st.session_state["result_object"].persist_result(target_path, save_type)
-                        st.success(f"Result saved to {target_path}")
-                    except Exception as e:  # noqa: BLE001
-                        st.error(f"Error while saving the result: {e}")
-
-        digits = st.number_input("Decimal digits", min_value=0, max_value=10, value=4, step=1, key="decimal_digits")
+        digits = 4
         if res["is_precise"]:
             st.metric("Fitness value", f"{res['level']:.{digits}f}")
         else:
             st.metric("Minimum fitness value", f"{res['lower']:.{digits}f}")
             st.metric("Maximum fitness value", f"{res['upper']:.{digits}f}")
         st.metric("Number of non-conforming traces: ", f"{res['number_non_conforming_runs']} / {res['number_all_runs']}")
+
+        with st.expander("Download result"):
+            save_format = st.selectbox("File format", list(SAVE_FORMATS), key="save_format")
+            save_type, save_extension, mime_type = SAVE_FORMATS[save_format]
+            with st.popover("What does the saved file contain?", use_container_width=True):
+                st.markdown(SAVE_HELP[save_format])
+            try:
+                download_data = result_as_bytes(
+                    st.session_state["result_object"], save_type, save_extension
+                )
+            except Exception:  # noqa: BLE001
+                LOGGER.exception("Preparing result download failed")
+                st.error("The result could not be prepared for download.")
+            else:
+                st.download_button(
+                    "Download result", data=download_data,
+                    file_name=f"po-track-result{save_extension}", mime=mime_type,
+                    key="download_result", use_container_width=True,
+                )
 
         # ----- token information -----
         st.markdown("&nbsp;")
@@ -532,11 +522,11 @@ with result_left:
             place_lines.append(f"**Places only estimated:** {res['places_estimated']}")
         st.markdown("  \n".join(place_lines))
 
-with result_right:
+with nonconforming_container:
     result_object = st.session_state.get("result_object")
     current_result = st.session_state.get("result")
     if current_result and result_object is not None:
-        st.subheader("Most non-conforming traces")
+        st.subheader("Non-conforming traces")
 
         control_left, control_right = st.columns(2)
         if current_result["is_precise"]:
@@ -550,9 +540,10 @@ with result_right:
         try:
             all_worst_runs = result_object.find_runs_with_worst_conformance_values(
                 len(result_object.run_to_conformance_result), level_type)
-        except Exception as e:  # noqa: BLE001
+        except Exception:  # noqa: BLE001
             all_worst_runs = None
-            st.error(f"Error while determining the worst runs: {e}")
+            LOGGER.exception("Determining the worst runs failed")
+            st.error("The non-conforming traces could not be determined.")
 
         worst_runs = None
         if all_worst_runs is not None and all_worst_runs:
@@ -574,7 +565,7 @@ with result_right:
                 st.info("There are no runs with a fitness value below 1.")
             else:
                 plot_area = st.container()  # reserved above the table, filled below once the selected row is known
-                digits_runs = st.session_state.get("decimal_digits", 4)
+                digits_runs = 4
                 rows = []
                 for rank, entry in enumerate(worst_runs, start=1):
                     run_result = entry.conformance_result
@@ -622,5 +613,6 @@ with result_right:
                                f"({len(selected_run.partial_order)} events). Select a row in the table below to show another trace.")
                     try:
                         st.pyplot(build_run_figure(selected_run), use_container_width=True)
-                    except Exception as e:  # noqa: BLE001
-                        st.error(f"Error while visualizing the run: {e}")
+                    except Exception:  # noqa: BLE001
+                        LOGGER.exception("Trace visualization failed")
+                        st.error("The selected trace could not be visualized.")

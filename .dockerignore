@@ -1,0 +1,23 @@
+.git/
+.github/
+.venv/
+.idea/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.log
+.DS_Store
+
+# Runtime input data is mounted separately, never baked into the image
+*.xes
+*.pnml
+
+# Tests and supplied experiment material are not needed by the web app
+tests/
+*.zip
+src/TokenBasedReplayForPartialOrders/experiments/
+
+# Local configuration/secrets
+.env
+.env.*
+!.env.example

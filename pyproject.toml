@@ -1,0 +1,9 @@
+[project]
+name = "po-TRACK"
+version = "1.0"
+description = "Partial order-based Token Replay for Audits and Compliance Checks"
+readme = "README.md"
+requires-python = ">=3.12"
+
+[project.urls]
+Repository = "https://github.com/sabinefw/TokenBasedReplayForPartialOrders"
