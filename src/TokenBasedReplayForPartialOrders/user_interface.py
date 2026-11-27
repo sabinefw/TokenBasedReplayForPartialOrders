@@ -36,6 +36,6 @@ def do_conformance_checking_for_partially_ordered_log(
                                                                                                              not only_use_heuristics,
                                                                                                              False,
                                                                                                              False,
-                                                                                                             add_initial_and_start_events)
+                                                                                                             True)
     result.run_id_to_event_id_to_po_successor_correction_flag = result_flags_for_correcting_missing_successors
     return result
